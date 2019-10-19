@@ -67,4 +67,75 @@ eval($plsqlParsed["CASE2"]->phpCodeToEval);
 echo "RESULT =  $var_date, $d_date, $d_time, $open<br>\n" ;
 
 ?>
+```
+
+#### Precompiled PHP Code
 ```php
+$db = new clsDBconnector("test");
+$___BIND___ = '';
+if (!isset($var_date)) $var_date="";
+$___BIND___ .= 'SET @'.strtoupper('var_date').' = '.$db->ToSQL($var_date,3).';';
+if (!isset($d_date)) $d_date="";
+$___BIND___ .= 'SET @'.strtoupper('d_date').' = '.$db->ToSQL($d_date,3).';';
+if (!isset($d_time)) $d_time="";
+$___BIND___ .= 'SET @'.strtoupper('d_time').' = '.$db->ToSQL($d_time,3).';';
+if (!isset($open)) $open="";
+$___BIND___ .= 'SET @'.strtoupper('open').' = '.$db->ToSQL($open,3).';';
+$plsqlParsed['CASE2']->phpCodeToEval = str_replace('### BIND',$___BIND___,$plsqlParsed['CASE2']->phpCode);
+```
+
+```php
+$db = new clsDBconnector("test");
+$db->query("
+BEGIN NOT ATOMIC
+   -- - Start Binded Variables 
+   SET @VAR_DATE = '2018/01/01';SET @D_DATE = NULL;SET @D_TIME = NULL;SET @OPEN = NULL; 
+   -- - End Binded Variables 
+   SET autocommit = 0;
+   BEGIN 
+-- -------------------------------------
+-- start embedded code
+-- -------------------------------------
+-- -------------------------------------------------------------------- 
+-- Testing with MARIADB, version 10.1.29 
+-- -------------------------------------------------------------------- 
+  # please Check this. Block comments, internal embedded code, must use escape character 
+  /* Inside comments will not intefiering */ 
+  DECLARE in_date date DEFAULT null; 
+  set in_date = DATE_ADD(@VAR_DATE, INTERVAL 30 DAY); 
+ 
+  if in_date > '2018-03-30' then 
+    set @text_error = concat('Error Managed by User:',cast(in_date as CHAR),' Exceeded Date limit'); 
+    SIGNAL SQLSTATE '45000' SET MYSQL_ERRNO = 31001, MESSAGE_TEXT = @text_error; 
+  end if; 
+ 
+  SELECT d_date, d_time, open 
+  into @D_DATE, @D_TIME, @OPEN 
+  FROM test.tmp_forex 
+  where d_date = in_date 
+  limit 1; 
+  set @VAR_DATE = in_date; 
+-- --------------------------------------------------------------------
+-- -------------------------------------
+-- end embedded code
+-- -------------------------------------
+  SELECT @VAR_DATE as var_date,@D_DATE as d_date,@D_TIME as d_time,@OPEN as open; 
+END; 
+COMMIT; 
+END; -- END OF BEGIN NOT ATOMIC 
+");
+while ($db->next_record()) { # var_dump($db->Record);
+$var_date = $db->Record['var_date'] ;
+$d_date = $db->Record['d_date'] ;
+$d_time = $db->Record['d_time'] ;
+$open = $db->Record['open'] ;
+}
+$db->close();
+
+```
+##### Result
+```
+RESULT =  2018-01-31, 2018-01-31 00:00:00, , 1.4171000000<br>
+RESULT =  2018-03-02, 2018-03-02 00:00:00, , 1.3782700000<br>
+"{\"CODE\":31001,\"MESSAGE\":\"Error Managed by User:2018-04-01 Exceeded Date limit \",\"USERID\":\"\",\"TYPE\":\"DB\",\"DB_TYPE\":\"\"}"
+```
