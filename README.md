@@ -4,7 +4,7 @@ Programmatic and Compound Statements (MySql - MariaDB) embedded in a Server Scri
 Please Download for more documentation...
 
 #### PHP Code
-´´´php
+```php
 <?php
 ##-----------------------------------------------------------------------------------
 ## MARIADB Programmatic and Compound Statements
@@ -67,4 +67,4 @@ eval($plsqlParsed["CASE2"]->phpCodeToEval);
 echo "RESULT =  $var_date, $d_date, $d_time, $open<br>\n" ;
 
 ?>
-´´´php
+```php
