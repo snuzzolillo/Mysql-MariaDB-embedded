@@ -187,10 +187,11 @@ In our example, the output will be shown if there was no error, otherwise we sho
 	}
 ```
 The "*doCode*" method handles 3 variable inside PHP's global context these are:
+
 |Variable| Description|
 |--|--|
-|$___SQLCODE|Contains the error code of the last SQL statement. If there was no error, the code is 0 (zero).  |
-|$___SQLERRM|Contains the error message of the last SQL statement. If there was no error the content is empty.|
-|$___LASTSQL|It contains the last SQL statement executed.|
+|\$___SQLCODE|Contains the error code of the last SQL statement. If there was no error, the code is 0 (zero).  |
+|\$___SQLERRM|Contains the error message of the last SQL statement. If there was no error the content is empty.|
+|\$___LASTSQL|It contains the last SQL statement executed.|
 
 
