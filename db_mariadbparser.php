@@ -3,8 +3,7 @@
 
 #-- BEGIN PARSER
 //DB MariaDB Ver 10.1 o superior
-#require_once(RelativePath . "/db_mysqli.php");
-//End DB mysqli
+
 define("ccsInteger", 1);
 define("ccsFloat", 2);
 define("ccsSingle", ccsFloat); //alias
@@ -42,16 +41,16 @@ function CCGetSession($parameter_name, $default_value = "")
 }
 
 //Connection Settings
-// Forma generica: $CCConnectionSettings[$sourceName] = $datasource;
 $CCConnectionSettings = array (
     "test" => array(
-        "Type" => "MySQL",
-        "DBLib" => "MySQLi",
         "Database" => "test",
         "Host" => "localhost",
         "Port" => "0",
         "User" => "system",
         "Password" => "manager",
+        # Change only if you know what is for
+        "Type" => "MySQL",
+        "DBLib" => "MySQLi",
         "Encoding" => array("", "utf8"),
         "Persistent" => false,
         "DateFormat" => array("yyyy", "-", "mm", "-", "dd", " ", "HH", ":", "nn", ":", "ss"),
@@ -72,14 +71,14 @@ function error_manager($msg, $code=3, $type=false, $status = 400, $exception = f
     global $Charset;
 
     # #######################################
-    $ContentType    = "application/json";
-    $Charset        = $Charset ? $Charset : "utf-8";
-
-    if ($Charset) {
-        header("Content-Type: " . $ContentType . "; charset=" . $Charset);
-    } else {
-        header("Content-Type: " . $ContentType);
-    }
+    #$ContentType    = "application/json";
+    #$Charset        = $Charset ? $Charset : "utf-8";
+    #
+    #if ($Charset) {
+    #    header("Content-Type: " . $ContentType . "; charset=" . $Charset);
+    #} else {
+    #    header("Content-Type: " . $ContentType);
+    #}
     # #######################################
 
     $status = (!$status) ? 400 : intval($status);
@@ -121,12 +120,12 @@ function error_manager($msg, $code=3, $type=false, $status = 400, $exception = f
         error_manager('error_manager bad json '.json_last_error_msg(), -20101) ;
     }
 
-    die(json_encode($e));
+    #die(json_encode($e));
 }
 /****
  * USE mysql as Connection Settings in Connection Settings array
  */
-$sourceName = 'mysql';
+#$sourceName = 'mysql';
 
 class DB_MySQLi {
 
@@ -150,6 +149,10 @@ class DB_MySQLi {
     public $Record   = array();
     public $Row;
 
+    /* public: result array DataSet */
+    public $DataSet   = array();
+    public $DataSetNumbers   = 0;
+
     /* public: current error number and error text */
     public $Errno    = 0;
     public $Error    = "";
@@ -165,8 +168,6 @@ class DB_MySQLi {
     public $Connected = false;
 
     public $Encoding = "";
-
-
 
     /* public: constructor */
     function DB_Sql($query = "") {
@@ -322,6 +323,95 @@ class DB_MySQLi {
                 }
             }
         }
+        # Will return nada if it fails. That's fine.
+        return $this->Query_ID;
+    }
+
+    /* public: perform a query */
+    function multi_query($Query_String) {
+        /* No empty queries, please, since PHP4 chokes on them. */
+        if ($Query_String == "")
+            /* The empty query string is passed on from the constructor,
+             * when calling the class without a query, e.g. in situations
+             * like these: '$db = new DB_Sql_Subclass;'
+             */
+            return 0;
+
+        if (!$this->connect()) {
+            return 0; /* we already complained in connect() about that. */
+        };
+
+        # New query, discard previous result.
+        if ($this->Query_ID) {
+            $this->free_result();
+        }
+
+        if ($this->Debug)
+            printf("Debug: query = %s<br>\n", $Query_String);
+
+        $this->Query_ID = @mysqli_multi_query($this->Link_ID, $Query_String);
+        $this->Row   = 0;
+        $this->Errno = mysqli_errno($this->Link_ID);
+        $this->Error = mysqli_error($this->Link_ID);
+
+        if (!$this->Query_ID) {
+            $msg["code"]    = $this->Errno;
+            $msg["message"] = $this->Error;
+            $this->halt($msg, $Query_String );
+            $this->Errors->addError("Database Error: " . mysqli_error($this->Link_ID));
+        } else {
+            if ($this->Link_ID->affected_rows == 0 and $this->Link_ID->warning_count > 0) {
+                $e = $this->Link_ID->get_warnings();
+                if ($e->errno == 1305) {
+                    # casos como warning durante un drop if exists no es relevante.
+                } else {
+                    $msg["code"] = 1329;
+                    $msg["code"] = $e->errno;
+                    $msg["message"] = $e->message.($msg["code"] == 1329 ? "" : " No data - zero rows fetched, selected, or processed ");
+                    $this->Errors->addError("Database Error: " . $msg["message"]);
+                    $this->halt($msg, $Query_String);
+                }
+            }
+        }
+
+        $this->DataSet = array();
+        if ($this->Query_ID) do {
+            // Lets work with the first result set
+            if ($result = mysqli_use_result($this->Link_ID))
+            {
+                #print_r("Result ".PHP_EOL);
+                #print_r($result);
+
+                $DatasetNumber = 0;
+
+                // Loop the first result set, reading it into an array
+                #while ($row = $result->fetch_array(MYSQLI_ASSOC))
+                while ($row = mysqli_fetch_array($result, MYSQLI_ASSOC))
+                {
+                    #print_r("Result Row ".PHP_EOL);
+                    #print_r("Result Row ".PHP_EOL);
+                    #print_r($row);
+                    #print_r(PHP_EOL);
+                    $this->DataSet[$DatasetNumber][] = $row;
+                }
+                $this->DataSetNumbers = ++$DatasetNumber;
+
+                // Close the result set
+                mysqli_free_result ($result);
+
+            }
+        } while (mysqli_next_result($this->Link_ID)) ;
+
+        #echo "ORIGINAL RESULT DATASET".PHP_EOL;
+        #var_dump($this->DataSet);
+        #echo PHP_EOL;
+
+        # Get Last row of the last DataSet
+        if (count($this->DataSet)) {
+            $this->Record = array_pop($this->DataSet[count($this->DataSet) - 1]);
+            $this->Row = 1;
+        }
+
         # Will return nada if it fails. That's fine.
         return $this->Query_ID;
     }
@@ -612,6 +702,9 @@ class DBAdapter
     public $Record;
     public $Row;
 
+    public $DataSet;
+    public $DataSetNumbers;
+
     public $Errno;
     public $Error;
 
@@ -636,6 +729,8 @@ class DBAdapter
         $this->Link_ID = & $this->Provider->Link_ID;
         $this->Query_ID = & $this->Provider->Query_ID;
         $this->Record = & $this->Provider->Record;
+        $this->DataSet = & $this->Provider->DataSet;
+        $this->DataSetNumbers = & $this->Provider->DataSetNumbers;
         $this->DBDatabase = & $this->Provider->DBDatabase;
         $this->DBHost = & $this->Provider->DBHost;
         $this->DBPort = & $this->Provider->DBPort;
@@ -645,6 +740,9 @@ class DBAdapter
         $this->Uppercase = & $this->Provider->Uppercase;
         $this->Provider->Errors = new clsErrors();
         $this->Errors = & $this->Provider->Errors;
+
+        $this->Errno = & $this->Provider->Errno;
+        $this->Error = & $this->Provider->Error;
 
         if (isset($Configuration["DBLib"]))
             $this->DB = $Configuration["DBLib"];
@@ -880,36 +978,14 @@ class DBAdapter
 }
 //End DB Adapter Class
 
-//Connection Class
-    /*** OLD **********************************
-    class clsDBconnector extends DBAdapter
-    {
-        function clsDBconnector($sourceName)
-        {
-            $this->Initialize($sourceName);
-        }
 
-        function Initialize($sourceName)
-        {
-            global $CCConnectionSettings;
-            $this->SetProvider($CCConnectionSettings[$sourceName]);
-            parent::Initialize();
-            $this->DateLeftDelimiter = "'";
-            $this->DateRightDelimiter = "'";
-            $this->query("ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD HH24:MI:SS'");
-        }
-
-    }
-    ***********************************/
 class clsDBconnector extends DBAdapter
 {
     function __construct($sourceName, $user = false, $password = false)
     {
-        #var_dump($user);
-        #var_dump($password);
-        #var_dump($sourceName);
+
         global $CCConnectionSettings;
-        // global $sourceName;
+
         $this->SetProvider($CCConnectionSettings[$sourceName]);
         if ($user) {
             $this->Provider->DBUser = $user;
@@ -918,28 +994,19 @@ class clsDBconnector extends DBAdapter
         if ($password) {
             $this->Provider->DBPassword = $password;
             $this->DBPassword = $password;
-            #var_dump($this);
         }
-        #echo "clsDBdefault before iniInitialize\n";
         $this->Initialize($sourceName);
-        #echo "clsDBdefault afgter iniInitialize\n";
-
-
     }
 
     function clsDBconnector($sourceName, $user = false, $password = false)
     {
-
-        #$this->clsDBdefault($user, $password);
         self::__construct($sourceName, $user, $password);
-        #var_dump($this);
     }
 
     function Initialize($sourceName)
     {
-        #echo "clsDBdefault IN iniInitialize\n";
         global $CCConnectionSettings;
-        //global $sourceName;
+
         parent::Initialize($sourceName);
         $this->DateLeftDelimiter  = "\'";
         $this->DateRightDelimiter = "\'";
@@ -966,203 +1033,374 @@ class clsDBconnector extends DBAdapter
 
         } else if (strtoupper($this->Type) == "MYSQL") {
             if (strcmp($this->RecordsCount, "CCS not counted")) {
-                //$SQL = "SELECT * FROM (".$SQL.") a ". (" LIMIT " . (($Page - 1) * $PageSize) . "," . $PageSize);
                 $SQL = $SQL. (" LIMIT " . (($Page - 1) * $PageSize) . "," . $PageSize);
-                #$SQL =  (" LIMIT " . (($Page - 1) * $PageSize) . "," . $PageSize);
-                #$SQL .= (" LIMIT " . ((($Page - 1) * $PageSize) + 1) . "," . $PageSize);
-            } else {
-                //$SQL = "SELECT * FROM (".$SQL.") a ". (" LIMIT " . (($Page - 1) * $PageSize) . "," . ($PageSize + 1));
+            } else {;
                 $SQL = $SQL. (" LIMIT " . (($Page - 1) * $PageSize) . "," . $PageSize);
-                #$SQL .= (" LIMIT " . (($Page - 1) * $PageSize) . "," . ($PageSize + 1));
             }
         }
         return $SQL;
     }
 }
-//End oracle Connection Class
+//End Connection Class
 
-global $plsqlParsed;
-$plsqlParsed = array();
+class clsDBParser
+{
 
-function sqlParser($sourceName, $currentfile = ""){
-    global $plsqlParsed;
-    if (!$currentfile) {
-        $currentfile = RelativePath.PathToCurrentPage.FileName;
+    public $plsqlParsed = array();
+    public $db = "";
+    public $sourceName = "";
+    public $currentScriptName = "";
+
+    function __construct($sourceName, $currentfile=null)
+    {
+        $this->sourceName = $sourceName;
+        $this->currentScriptName = is_null($currentfile) ? $_SERVER['SCRIPT_FILENAME'] : $currentfile;
+
+        $this->db = new clsDBconnector($sourceName);
+        $this->sqlParser($this->currentScriptName, $sourceName); # call the Precompiler
     }
-    $lump = file_get_contents ($currentfile);
-    $start_tag = '/*<';
-    $end_tag = '>*/';
 
-    // method 2 (faster)
-    $n = 0;
-    $endpos = strpos($lump, "#-- END PARSER") + 1;
-    $startpos = strpos($lump, $start_tag, $endpos) + strlen($start_tag);
-    while ($startpos !== false and $endpos !== false) {
-        $endpos = strpos($lump, $end_tag, $startpos);
-        if ($endpos !== false) {
-            $codes[] = substr($lump, $startpos, $endpos - $startpos);
-            $endpos = $endpos + strlen($end_tag);
-            $startpos = strpos($lump, $start_tag, $endpos) === false ? false : strpos($lump, $start_tag, $endpos) + strlen($start_tag);
-        } else {
-            $startpos = false;
+    function clsDBParser($sourceName, $currentfile)
+    {
+
+        #self::__construct($sourceName, $user, $password);
+        $this->__construct($sourceName, $currentfile);
+    }
+
+    function doBind($codeName,$sourceName = null) {
+
+        is_null($sourceName) ? $this->sourceName : $sourceName;
+
+        $arr = $this->plsqlParsed[$codeName]->bind;
+        $___BIND___ = "";
+
+        #$db = new clsDBconnector($sourceName);
+        foreach($arr as $toBind) {
+            $t = trim(str_replace(',','',$toBind));
+            if (!isset($GLOBALS[$t])) $GLOBALS[$t] = "";
+            $___BIND___ .= "\t".'SET @'.strtoupper($t).' = '.$this->db->ToSQL($GLOBALS[$t],ccsText).";\n";
         }
-        $n++;
-        #echo $startpos."<br>";
+        return $___BIND___;
+
+        #$db->close();
+
     }
 
-    foreach($codes as $ind => $code) {
-        #echo 'CODIGO '.$ind.'<BR>';
-        $head = substr($code, 0, strpos($code, '>'));
-        $body = trim(substr($code, strpos($code, ">")+1, strpos($code, '<')-(strpos($code, ">")+1)));
-        #echo $head."<br>";
-        #echo "<br>BODY=".$body." END BODY<br>";
-        #$a = explode(' ', $head);
-        #$Lang = $a[0];
-        #$s  = $a;
-        #$name = $a[2];
-        #echo "<br>HEAD<br>";
-        $s = strtoupper($head);
-        $s = explode( ' ', $s);
-        #var_dump($s);
+    function printForDebug($codeName) {
+        $queryString = $this->buildQueryString($codeName);
+        # Print pre-format query string qith line number
+        $strinByLine = explode("\n", $queryString);
+        $i = 1;
+        print('<pre>');
+        foreach($strinByLine as $lineNumber => $line) {
+            print(str_pad($lineNumber+1, 4, ' ', STR_PAD_LEFT).' '.$line.PHP_EOL);
+        }
+        print('</pre>');
+    }
 
-        $scope = array();
-        $scope[0] = $s[0]; #-- Lang ej: PLSQL
-        if (isset($s[1])) {
-            $scope[1] = $s[1]; #-- tipo
-            if ($scope[1] == 'TRIGGER') {
-                $t = explode( ':', $s[2]);
-                #var_dump($t);
-                if (!isset($t[1])) {
-                    $scope[2] = 'FORM';
-                    $scope[3] = $s[3];
-                    $name = $s[3]  ;
-                } else {
-                    $block = explode('.', $t[1] );
-                    if (!isset($block[1])) {
-                        $scope[2] = 'BLOCK';
-                        $scope[3]  = $block[0];
-                        $scope[4]  = $s[3];
-                        $name = $s[3];
-                    } else {
-                        $scope[2] = 'ITEM';
-                        $scope[3] = $t[1];
-                        $scope[4] = $s[3];
-                        $name = $s[3];
-                    }
-                }
-            } else if ($scope[1] == 'ANONYMOUS') {
-                $scope[2] = $s[2];
-                #$scope[3] = $s[2];
-                $name = $s[2] ;
-            } else if ($scope[1] != 'ANONYMOUS') {
-                $scope[1] = 'ANONYMOUS';
-                $scope[2] = $s[1];
-                $name = $s[1]  ;
+    function buildQueryString($codeName, $sourceName = null) {
+        $sourceName = is_null($sourceName) ? $this->sourceName : $sourceName;
+        $queryString = $this->plsqlParsed[$codeName]->queryString;
+
+        ### --------- BIND  LINE ---------------
+        $___BIND___ = $this->doBind($codeName,$sourceName);
+        $queryString = str_replace('### BIND',$___BIND___,$queryString);
+        ### ------------------------------------
+
+        ### --------- BUILD RESULT LINE ------
+        $getResult2 = "\n\t"."SELECT 'OUTPUT BIND' as ___action___,";
+        $arr = $this->plsqlParsed[$codeName]->bind;
+        foreach($arr as $toBind) {
+            $t = trim(str_replace(',','',$toBind));
+            $getResult2 .= '@'.strtoupper($t).' as '.$t.',';
+        }
+        $getResult2 = substr($getResult2,0,-1).' ;';
+        $queryString = str_replace('### RESULT',$getResult2,$queryString);
+        ### ------------------------------------
+        return $queryString;
+    }
+
+    function doCode($codeName, $sourceName = null) {
+
+        $sourceName = is_null($sourceName) ? $this->sourceName : $sourceName;
+
+        /*$queryString = $this->plsqlParsed[$codeName]->queryString;
+        $___BIND___ = $this->doBind($codeName,$sourceName);
+        $queryString = str_replace('### BIND',$___BIND___,$queryString);
+        $arr = $this->plsqlParsed[$codeName]->bind;
+
+        ### --------- BUILD RESULT LINE ------
+        #$getResult1 = "\n\t".'SELECT 1 as num,';
+        #foreach($arr as $toBind) {
+        #    $t = trim(str_replace(',','',$toBind));
+        #    $getResult1 .= '@'.strtoupper($t).' as '.$t.',';
+        #}
+        #$getResult1 = substr($getResult1,0,-1).' ; ';
+
+        $getResult2 = "\n\t"."SELECT 'OUTPUT BIND' as ___action___,";
+        foreach($arr as $toBind) {
+            $t = trim(str_replace(',','',$toBind));
+            $getResult2 .= '@'.strtoupper($t).' as '.$t.',';
+        }
+        $getResult2 = substr($getResult2,0,-1).' ;';
+        $queryString = str_replace('### RESULT',$getResult2,$queryString);
+        */
+        $queryString = $this->buildQueryString($codeName, $sourceName);
+        #print_r($queryString);
+
+        $this->plsqlParsed[$codeName]->SQLCODE = 0;
+        $this->plsqlParsed[$codeName]->SQLEERM = "";
+
+        $this->db->multi_query($queryString);
+
+        # Error Handling
+        $this->plsqlParsed[$codeName]->LASTSQL = $queryString;
+        $this->plsqlParsed[$codeName]->SQLCODE = $this->db->Errno;
+        $this->plsqlParsed[$codeName]->SQLERRM = $this->db->Error;
+
+        $this->LAST_SQLCODE = $this->db->Errno;
+        $this->LAST_SQLERRM = $this->db->Error;
+
+        if (is_array($this->db->Record)) {
+            #var_dump($this->db->Record);
+            foreach($this->plsqlParsed[$codeName]->bind as $toBind) {
+                $t = trim(str_replace(',','',$toBind));
+                if (isset($this->db->Record[$t]) and $this->LAST_SQLCODE === 0)
+                    $GLOBALS[$toBind] =  $this->db->Record[$t];
             }
         }
-        #echo "<br>SCOPE="."<BR>";
-        #var_dump($scope);
-        $plsqlParsed[$name]= new stdClass();
 
-        //$scope[] = $body;
-        #echo "<br>BIND="."<BR>";
-        #preg_match_all("/\\:\s*([a-z, A-Z, 0-9, _,.]+)/ise", $body, $arr);
-        #preg_match_all("/\\:\s*([a-zA-Z0-9_.]+)/ise", $body, $arr);
-        preg_match_all("/\\:([a-zA-Z0-9_.]+)/ise", $body, $arr);
-        if (isset($arr[1])) {
-            $arr = array_unique($arr[1]);
-        } else $arr = array();
-        #var_dump($arr);
-        #echo "TIPO=$scope[0], SCOPE=".implode('.',$scope).", NOMBRE=".$name."<BR>";
+        #Set Error Handling GLOBALS Variables
+        if (!isset($GLOBALS['___SQLCODE'])) $GLOBALS['___SQLCODE'] = 0;
+        if (!isset($GLOBALS['___SQLERRM'])) $GLOBALS['___SQLERRM'] = "";
+        if (!isset($GLOBALS['___LASTSQL'])) $GLOBALS['___LASTSQL'] = "";
+        $GLOBALS['___SQLCODE'] =  $this->plsqlParsed[$codeName]->SQLCODE;
+        $GLOBALS['___SQLERRM'] =  $this->plsqlParsed[$codeName]->SQLERRM;
+        $GLOBALS['___LASTSQL'] =  $this->plsqlParsed[$codeName]->LASTSQL;
 
-        /*
-         *
-         * Check Sintaxis no disponible para mysql
-         *******************************************+
-        $x = sqlCompile($sourceName, 'BEGIN '.$body.' END;');
-        if ($x->SQLCODE !== 0) {
-            echo $x->SQLERRMSG."<BR>";
-        }
-        if ($x->SQLCODE === 0) {
-            #echo "COMPILED<br>";
-        }
-        *****************/
-
-        $body = str_replace('*\/','*/',$body);
-        $plsqlParsed[$name]->scope = $scope;
-        $plsqlParsed[$name]->body = $body;
-        $plsqlParsed[$name]->bind = $arr;
-        $plsqlParsed[$name]->phpCodeToEval = "";
-
-        ## Hay Parsed varibles?
-        #echo "Hay Parsed Variables?<br> \n";
-        #var_dump($plsqlParsed[$name]->bind);
-        #echo "<br> \n";
-        #------ CREATE EL CODIGO PARA EVAL --------
-        $esto = array(chr(10), chr(9), chr(13));
-        $porEsto = array("\n","\t"," ");
-        $body = trim(str_replace($esto, $porEsto, $body)) ;
-        $phpCode = '$db = new clsDBconnector("'.$sourceName.'");'."\n";
-        #$phpCode = "eval(\$plsqlParsed['$name']->listToBind);"."\n";
-
-        # REGLA:    las variables Bind o Hosting Variables o Parametros, deben ser majejados internamentente
-        #           dentro del BLOQUE ANONIMO y es "case-insesitive"
-        #
-
-        $db = new clsDBconnector($sourceName);
-
-        $listToBind = '$db = new clsDBconnector("'.$sourceName.'");'."\n"
-            ."\$___BIND___ = '';\n";
-        $x = "";
-
-        foreach($arr as $toBind) {
-            $t = trim(str_replace(',','',$toBind));
-            $listToBind .= 'if (!isset($'.$t.')) $'.$t.'="";'."\n";
-            $listToBind .= "\$___BIND___ .= 'SET @'.strtoupper('$t').' = '.\$db->ToSQL(\$$t,3).';';\n";
-            $body = str_replace(':'.$t,'@'.strtoupper($t),$body);
-        }
-
-        #$listToBind .= "eval(\$___BIND___);\n";
-        #$listToBind .= "print_r(\$___BIND___);\n";
-        $listToBind .= "\$plsqlParsed['$name']->phpCodeToEval = str_replace('### BIND',\$___BIND___,\$plsqlParsed['$name']->phpCode);\n";
-        $plsqlParsed[$name]->listToBind = $listToBind;
-
-        $beginText = "BEGIN NOT ATOMIC"."\n"."\n ### BIND \n"."BEGIN \n";
-
-        $endText = "\n ### RESULT \n"."END; END;"."\n";
-        #    ."-- _STOP-ANONYMOUS_"."\n";
-
-        $phpCode .= '$db->query("'.$beginText.$body.$endText.'");'."\n";
-
-        $getResult = 'SELECT ';
-
-        foreach($arr as $toBind) {
-            $t = trim(str_replace(',','',$toBind));
-            $getResult .= '@'.strtoupper($t).' as '.$t.',';
-        }
-        $getResult .= ' 0 as nada;';
-
-        $phpCode = str_replace('### RESULT',$getResult,$phpCode);
-
-        $phpCode .= 'while ($db->next_record()) { # var_dump($db->Record);'."\n";
-
-        foreach($arr as $toBind) {
-            $t = trim(str_replace(',','',$toBind));
-            $phpCode .= '$'.$t.' = $db->Record[\''.strtolower($t).'\'] ;'."\n";
-        }
-
-        $phpCode .= '}'."\n";
-        $phpCode .= '$db->close();'."\n";
-
-
-        $plsqlParsed[$name]->phpCode = $phpCode;
+        return $this->db->DataSet;
     }
-    ## AHORA EL ARRAY SCOPE TIENE TODOS LOS CODIGOS SQL
-    ##
 
+
+    function sqlParser($currentfile = "", $sourceName = null ){
+
+        is_null($sourceName) ? $this->sourceName : $sourceName;
+
+        if (!$currentfile) {
+            #$currentfile = RelativePath.PathToCurrentPage.FileName;
+            $currentfile = __FILE__;
+        }
+
+        $lump = file_get_contents ($currentfile);
+        $start_tag = '/*<';
+        $end_tag = '>*/';
+
+        // method 2 (faster)
+        $n = 0;
+        $endpos = strpos($lump, "#-- END PARSER") + 1;
+        $startpos = strpos($lump, $start_tag, $endpos) + strlen($start_tag);
+        while ($startpos !== false and $endpos !== false) {
+            $endpos = strpos($lump, $end_tag, $startpos);
+            if ($endpos !== false) {
+                $codes[] = substr($lump, $startpos, $endpos - $startpos);
+                $endpos = $endpos + strlen($end_tag);
+                $startpos = strpos($lump, $start_tag, $endpos) === false ? false : strpos($lump, $start_tag, $endpos) + strlen($start_tag);
+            } else {
+                $startpos = false;
+            }
+            $n++;
+        }
+
+        if (count($codes) === 0) {
+            return;
+        }
+
+        foreach($codes as $ind => $code) {
+
+            $head = substr($code, 0, strpos($code, '>'));
+            $body = trim(substr($code, strpos($code, ">")+1, strpos($code, '<')-(strpos($code, ">")+1)));
+
+            $s = strtoupper($head);
+            $s = explode( ' ', $s);
+
+            $scope = array();
+            $scope[0] = $s[0]; #-- Lang ej: PLSQL
+            if (isset($s[1])) {
+                $scope[1] = $s[1]; #-- tipo
+                if ($scope[1] == 'TRIGGER') {
+                    $t = explode( ':', $s[2]);
+                    #var_dump($t);
+                    if (!isset($t[1])) {
+                        $scope[2] = 'FORM';
+                        $scope[3] = $s[3];
+                        $name = $s[3]  ;
+                    } else {
+                        $block = explode('.', $t[1] );
+                        if (!isset($block[1])) {
+                            $scope[2] = 'BLOCK';
+                            $scope[3]  = $block[0];
+                            $scope[4]  = $s[3];
+                            $name = $s[3];
+                        } else {
+                            $scope[2] = 'ITEM';
+                            $scope[3] = $t[1];
+                            $scope[4] = $s[3];
+                            $name = $s[3];
+                        }
+                    }
+                } else if ($scope[1] == 'ANONYMOUS') {
+                    $scope[2] = $s[2];
+                    #$scope[3] = $s[2];
+                    $name = $s[2] ;
+                } else if ($scope[1] != 'ANONYMOUS') {
+                    $scope[1] = 'ANONYMOUS';
+                    $scope[2] = $s[1];
+                    $name = $s[1]  ;
+                }
+            }
+
+            $this->plsqlParsed[$name]= new stdClass();
+            $this->plsqlParsed[$name]->SQLCODE = 0;
+            $this->plsqlParsed[$name]->SQLERRM = "";
+            $this->plsqlParsed[$name]->lastSQL = "";
+            $this->plsqlParsed[$name]->originalCode = $start_tag.$code.$end_tag;
+
+            # Admite variables que empiecen por letras y  numeros
+            #preg_match_all("/\\:([a-zA-Z0-9_.\:]+)/ise", $body, $arr);
+
+            # Admite variables que empiecen por letras y  numeros pero permite el : como caracter para capturar valores en caso de formatos de horas
+            #preg_match_all("/\\:([a-zA-Z0-9_.\:]+)/ise", $body, $arr);
+
+            # No admite variables que empiecen por numeros
+            #preg_match_all("/\\:[a-zA-Z_]([a-zA-Z0-9_.]+)/ise", $body, $arr);
+
+
+            # En este caso, en arr[0] aparecen las que comienzan con : pero si estan entre ' ', debe ser omitida
+            preg_match_all("/('(?:\\.|[^'])*\\')|\\:([a-zA-Z0-9_.]+)/ise", $body, $arr);
+
+            #print_r($arr); die;
+            if (isset($arr[1])) {
+                foreach ($arr[0] as $key => $element) {
+                    if (substr($element, 0,1) !== ':') {
+                        unset($arr[0][$key]);
+                        unset($arr[1][$key]);
+                    } else {
+                        $arr[1][$key] = substr($arr[0][$key],1);
+                    }
+                }
+                foreach ($arr[1] as $key => $element) {
+                    if (strpos($element, ':') !== false) {
+                        unset($arr[0][$key]);
+                        unset($arr[1][$key]);
+                    }
+                }
+                $arr = array_unique($arr[1]);
+                $arr = array_values($arr);
+            } else $arr = array();
+
+
+            $body = str_replace('*\/','*/',$body);
+            $body = str_replace('"','\"',$body);
+            $this->plsqlParsed[$name]->scope = $scope;
+            $this->plsqlParsed[$name]->body = $body;
+            $this->plsqlParsed[$name]->bind = $arr;
+            #$this->plsqlParsed[$name]->phpCodeToEval = "";
+
+            ## Hay Parsed varibles?
+
+            #------ CREATE EL CODIGO PARA EVAL --------
+            $esto = array(chr(10), chr(9), chr(13));
+            $porEsto = array("\n","\t"," ");
+            $body = trim(str_replace($esto, $porEsto, $body)) ;
+
+            # REGLA:    las variables Bind o Hosting Variables o Parametros, deben ser majejados internamentente
+            #           dentro del BLOQUE ANONIMO y es "case-insesitive"
+            #
+
+            foreach($arr as $toBind) {
+                $t = trim(str_replace(',','',$toBind));
+                $body = str_replace(':'.$t,'@'.strtoupper($t),$body);
+            }
+
+            $beginText = "BEGIN NOT ATOMIC"."\n"
+                #."DECLARE EXIT HANDLER FOR SQLEXCEPTION"."\n"
+                #."BEGIN"."\n"
+                #."GET DIAGNOSTICS CONDITION 1 @sqlstate = RETURNED_SQLSTATE,"."\n"
+                #."@errno = MYSQL_ERRNO, @text = MESSAGE_TEXT;"."\n"
+                ##."SET @full_error = CONCAT('ERROR ', @errno, ' (', @sqlstate, '): ', @text);"."\n"
+                #."SELECT @full_error as ___SQLCODE, @text as ___SQLERRM;"."\n"
+                #."END;"."\n"
+                ."   -- - Start Bind Variables \n"
+                ."   ### BIND \n"
+                ."   -- - End Bind Variables \n"
+                ."   SET @___autocommit = @@autocommit;\n"
+                ."   SET @@autocommit = 0;\n"
+                ."   BEGIN \n"
+                ."-- -------------------------------------\n"
+                ."-- start embedded code\n"
+                ."-- -------------------------------------\n";
+
+            $endText = "\n-- -------------------------------------\n"
+                ."-- end embedded code\n"
+                ."-- -------------------------------------\n"
+                ."  ### RESULT \n"
+                .   "END; \n"
+                .   "COMMIT; \n"
+                ."   SET @@autocommit = @___autocommit;\n"
+                ."END; -- END OF BEGIN NOT ATOMIC ";
+            #    ."-- _STOP-ANONYMOUS_"."\n";
+
+            $queryString = $beginText.$body.$endText;
+
+            $this->plsqlParsed[$name]->queryString = $queryString;
+
+        }
+
+        ## AHORA EL ARRAY SCOPE TIENE TODOS LOS CODIGOS SQL
+        ##
+
+    }
+
+    /*** TEST ****
+    function multi_query($query) {
+        // Change the params to you own here...
+        $mysql = new mysqli('localhost', 'system', 'manager', 'test');
+        $rs = array();
+        if (mysqli_connect_errno())
+        {
+            die(printf('MySQL Server connection failed: %s', mysqli_connect_error()));
+        }
+
+        // Check our query results
+        if ($mysql->multi_query($query))
+        {
+            $show_results = true;
+            do {
+                // Lets work with the first result set
+                if ($result = $mysql->use_result())
+                {
+                    // Loop the first result set, reading it into an array
+                    while ($row = $result->fetch_array(MYSQLI_ASSOC))
+                    {
+                        $rs[] = $row;
+                    }
+
+                    // Close the result set
+                    $result->close();
+                }
+            } while ($mysql->next_result());
+        }
+        else
+        {
+            echo '<p>There were problems with your query [' . $query . ']:<br /><strong>Error Code ' . $mysql->errno . ' :: Error Message ' . $mysql->error . '</strong></p>';
+        }
+
+        $mysql->close();
+        var_dump($rs);
+
+    }
+    *****/
 }
-#sqlParser();
-#-- END PARSER
-
+//End -- END PARSER Class
 
 ?>
