@@ -26,3 +26,5 @@ if(!$___SQLCODE){
 ?>
 ```
 [Let's start with a very simple example](doc/TOPIC_01.md)
+
+[The Precompiler](doc/TOPIC_02.md)
