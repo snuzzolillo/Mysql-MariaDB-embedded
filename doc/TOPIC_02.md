@@ -23,7 +23,9 @@ The precompiler is invoked when an instance of clsDBParser is created. Just one 
 ```
 The "clsDBParser" function is part of *"db_mariadbparser.php"*. This function runs through the script (that is, "to itself") looking for comment blocks enclosed within two specific tags.
 
-|TAG             |descripcion                          |
+The "test" parameter is a reference to a DB-CONNECTOR. It is defined into *"db_mariadbparser.php"*. Yo must config this to your needs.
+#### The Tags descripctions
+|TAG             |Descripcion                          |
 |----------------|-------------------------------|
 |Start with|/*<DATABASE_ENGINE ANONYMOUS BLOCK_NAME\>|
 |Ends with|\<END>*/|
@@ -33,7 +35,52 @@ The "clsDBParser" function is part of *"db_mariadbparser.php"*. This function ru
 The call to the precompiler must be in the beginning, in this way the embedded codes will be interpreted and constructed before continuing to execute the original script.
 
 #### The Embedded code
-Is considered "embedded code" what is enclosed between the tags <pre>/*<……> and <END>*/</pre>. 
+Is considered "embedded code" what is enclosed between the tags 
+```
+/*<……> and <END>*/
+```
+Here an example:
+```sql
+/*<MARIADB ANONYMOUS CASE2>
+
+-- --------------------------------------------------------------------
+-- Testing with MARIADB, version 10.1.29
+-- --------------------------------------------------------------------
+
+  DECLARE in_date date DEFAULT null;
+  set in_date = DATE_ADD(:var_date, INTERVAL 30 DAY);
+
+  if in_date > '2018-03-30' then
+    set @text_error = concat('Error Managed by User:',cast(in_date as CHAR),' Exceeded Date limit');
+    SIGNAL SQLSTATE '45000' SET MYSQL_ERRNO = 31001, MESSAGE_TEXT = @text_error;
+  end if;
+
+  -- -----------------------------------------------------
+  -- This command without INTO will fill DataSet result --
+  -- -----------------------------------------------------
+  SELECT d_date, d_time, open
+  FROM test.tmp_forex
+  where d_date > in_date
+  limit 10;
+  -- -----------------------------------------------------
+
+  -- -----------------------------------------------------
+  -- This command with INTO will change Bind Variables  --
+  -- -----------------------------------------------------
+  SELECT d_date, d_time, open
+  into :d_date, :d_time, :open
+  FROM test.tmp_forex
+  where d_date = in_date
+  limit 1;
+  -- -----------------------------------------------------
+
+  -- -----------------------------------------------------
+  -- This SET will change the value of Bind Variables ----
+  -- -----------------------------------------------------
+  set :var_date = in_date;
+
+<END>*/
+```
 The first tag provides us with additional information, in our case:
 ```
 /*<MARIADB ANONYMOUS CASE2>
