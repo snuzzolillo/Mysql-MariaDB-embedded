@@ -91,7 +91,7 @@ The parser will interpret this as follows:
 |----------|--------------------------|
 |MARIADB|SQL language or dialect or Database engine.|
 |ANONYMOUS|Indicates that it is an anonymous block. Used for future implementation, for now it is not relevant but the term "ANONYMOUS" must be present.|
-|CASE2|It is a unique name. It is the identification of the block that refers to the SQL code that ends when finding the <END>*\/ tag. During the precompilation process, the embedded code will be extracted and stored in a PHP array usin the name as index and to allow its subsequent invocation. It must be unique into a Script Server.|
+|CASE2|Is the BLOCL NAME. It is a unique name. It is the identification of the block that refers to the SQL code that ends when finding the <END>*\/ tag. During the precompilation process, the embedded code will be extracted and stored in a PHP array usin the name as index and to allow its subsequent invocation. It must be unique into a Script Server.|
 
 
 The precompiler creates an array called plsqlParsed, whose elements are indexed by the code name identified by the "BLOCK_NAME" on the start tag.
