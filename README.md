@@ -154,9 +154,9 @@ Array
 		)
 )
 ```
-The "*doCode*" method returns a multi-dimensional array (3 dimensions) which in PHP mysqli are called "Results". The first dimension of the array has an index for each "Result" each of them we will call a DataSet, the second dimension of the array are rows of that DataSet and the third dimension are columns of those rows. Normally we will always get 1 Unique DataSet. The output shown is the content of the PHP $ resultDataSet [0] variable. When a MariaDB statement generates an output of one or more rows, they will create a DataSet. For example, if you run "select * from table;" The output of the select can be retrieved as a DataSet.
+The "*doCode*" method returns a multi-dimensional array (3 dimensions) which in PHP mysqli are called "Results". The first dimension of the array has an index for each "Result" each of them we will call a DataSet, the second dimension of the array are rows of that DataSet and the third dimension are columns of those rows. Normally we will always get 1 Unique DataSet. The output shown is the content of the PHP *$resultDataSet[0]* variable. When a MariaDB statement generates an output of one or more rows, they will create a DataSet. For example, if you run "select * from table;" The output of the select can be retrieved as a DataSet.
 
-The first 4 rows of the *$resultDataSet [0]* array (indexed by 0..3) contain the values resulting from the MariaDB statement:
+The first 4 rows of the *$resultDataSet[0]* array (indexed by 0..3) contain the values resulting from the MariaDB statement:
 ```sql
 show variables  like 'auto%';
 ```
