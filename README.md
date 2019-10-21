@@ -1,141 +1,196 @@
-# Mysql-MariaDB-embedded
-Programmatic and Compound Statements (MySql - MariaDB) embedded in a Server Script (PHP)
+# Programmatic and Compound Statements (MariaDB) embedded in a Server Script (PHP)
 
-Please Download for more documentation...
+## Note: The code shown here is part of a larger project implementation called WEB APPLICATION FULLSTACK FRAMEWORK.
+
+If you are a SQL database enthusiast and know about the use of database languages and know the database engine (RDBMS) power then this may be of interest to you. The versions before 10.1.1 of MariaDB did not allow Programmatic and Compound Statements outside of a procedure, functions or triggers (we usually call them "anonymous blocks"). From version 10.1.1 of MariaDB they are possible. This opens a door to the possibility of making full use of the maximum potential of the database engine (RDBMS) during the "data transformation" or performing of the "business rules". This potential also includes the control of transactions, that is, you deciding when to make a COMMIT or when to make a ROLLBACK. All within a "BEGIN ... END;" can be treated as one "transaction."
+
+At the time of developing this code, I did not find any indication that the latest version of MySql ([MySQL 8.0.18](https://dev.mysql.com/doc/relnotes/mysql/8.0/en/), General Availability 2019-10-14) has this capability.
+
+Let's start with a very simple example:
+```php
+	<?php
+	##-----------------------------------------------------------------------------------
+	## MARIADB Programmatic and Compound Statements
+	##-----------------------------------------------------------------------------------
+	
+	##-- REQUIRED TO EXECUTE PARSE MariaDB (from v10.1.1) Programmatic and Compound Statements
+	define("RelativePath", ".."); #-- RELATIVE TO ROOT OF CUURENT FILE
+	require_once(RelativePath."/db_mariadbparser.php");
+	##-----------------------------------------------------------------------------------
+	
+	#-----------------------------------------------------------------
+	# Instance creation execute the precompiler
+	#-----------------------------------------------------------------
+	$parser = new clsDBParser("test");
+	#-----------------------------------------------------------------
+	
+	## ---------------------------------------------------------------
+	## CASE1 : SQL Programmatic and Compound Statements  EMBEDDED
+	## a very simple example
+	## ---------------------------------------------------------------
+	
+	/*<MARIADB ANONYMOUS CASE1>
+	  SET :maria_db_version = @@version;
+	  show variables   like 'auto%';
+	  SHOW FULL PROCESSLIST;
+	<END>*/
+	
+	$resultDataSet = $parser->doCode('CASE1');
+	# Check for Error
+	if ($___SQLCODE === 0 ) {
+	  print 'DATABASE VERSION=' . $maria_db_version . PHP_EOL;
+	
+	  # Use $resultDataSet[0] because using SQL Procedure can get multiple DataSet Results
+	  print('<pre>');
+	  print_r((isset($resultDataSet[0]) ? $resultDataSet[0] : "no result DataSet"));
+	  print('</pre>');
+	} else {
+	  print('<pre>'
+		.'Error on CASE1 (USING GLOBALS ERROR VARIABLES): '
+		.$___SQLCODE.' - '.$___SQLERRM.PHP_EOL
+		.'</pre>');
+	  # Which Statement
+	  $parser->printForDebug('CASE1');
+	}
+	?>
 
 #### PHP Code
+```
+What is this?:
+>>>
 ```php
-<?php
-##-----------------------------------------------------------------------------------
-## MARIADB Programmatic and Compound Statements
-##-----------------------------------------------------------------------------------
-
-##-- REQUIRED TO EXECUTE PARSE MariaDB Programmatic and Compound Statements ---------
-define("RelativePath", ".."); #-- RELATIVE TO ROOT OF CUURENT FILE
-include_once(RelativePath."/db_mariadbparser.php");
-##-----------------------------------------------------------------------------------
-
-sqlParser("test",__FILE__); # Precompiler
-global $plsqlParsed;
-
-## Before…. Setting values to Binded Variables
-$var_date = '2018/01/01'; # Used as Bind Variable
-
-##
-## ---------------------------------------------------------------
-/*<MARIADB ANONYMOUS CASE2>
-
--- --------------------------------------------------------------------
--- Testing with MARIADB, version 10.1.29
--- --------------------------------------------------------------------
-  # please Check this. Block comments, internal embedded code, must use escape character
-  /* Inside comments will not intefiering *\/
-  DECLARE in_date date DEFAULT null;
-  set in_date = DATE_ADD(:var_date, INTERVAL 30 DAY);
-
-  if in_date > '2018-03-30' then
-    set @text_error = concat('Error Managed by User:',cast(in_date as CHAR),' Exceeded Date limit');
-    SIGNAL SQLSTATE '45000' SET MYSQL_ERRNO = 31001, MESSAGE_TEXT = @text_error;
-  end if;
-
-  SELECT d_date, d_time, open
-  into :d_date, :d_time, :open
-  FROM test.tmp_forex
-  where d_date = in_date
-  limit 1;
-  set :var_date = in_date;
--- --------------------------------------------------------------------
-
+/*<MARIADB ANONYMOUS CASE1>
+```
+```sql
+SET :maria_db_version = @@version;
+show variables  like 'auto%';
+SHOW FULL PROCESSLIST;
+```
+```php
 <END>*/
-## ---------------------------------------------------------------
-#
-
-# Execute 1 time
-eval($plsqlParsed["CASE2"]->listToBind);
-eval($plsqlParsed["CASE2"]->phpCodeToEval);
-echo "RESULT =  $var_date, $d_date, $d_time, $open<br>\n" ;
-
-# Execute 2 times
-eval($plsqlParsed["CASE2"]->listToBind);
-eval($plsqlParsed["CASE2"]->phpCodeToEval);
-echo "RESULT =  $var_date, $d_date, $d_time, $open<br>\n" ;
-
-# Execute 3 times
-eval($plsqlParsed["CASE2"]->listToBind);
-eval($plsqlParsed["CASE2"]->phpCodeToEval);
-
-echo "RESULT =  $var_date, $d_date, $d_time, $open<br>\n" ;
-
-?>
 ```
-
-#### Precompiled PHP Code
+It is an embedded code inside the PHP Script and is written in MariaDB sentences. This code was interpreted when we created the instance of the class "clsDBParser" in the php instruction:
 ```php
-$db = new clsDBconnector("test");
-$___BIND___ = '';
-if (!isset($var_date)) $var_date="";
-$___BIND___ .= 'SET @'.strtoupper('var_date').' = '.$db->ToSQL($var_date,3).';';
-if (!isset($d_date)) $d_date="";
-$___BIND___ .= 'SET @'.strtoupper('d_date').' = '.$db->ToSQL($d_date,3).';';
-if (!isset($d_time)) $d_time="";
-$___BIND___ .= 'SET @'.strtoupper('d_time').' = '.$db->ToSQL($d_time,3).';';
-if (!isset($open)) $open="";
-$___BIND___ .= 'SET @'.strtoupper('open').' = '.$db->ToSQL($open,3).';';
-$plsqlParsed['CASE2']->phpCodeToEval = str_replace('### BIND',$___BIND___,$plsqlParsed['CASE2']->phpCode);
+$parser = new clsDBParser("test");
 ```
-
+The interpreted code is ready for use. In order to execute this specific code we use the "doCode" method of the class "clsDBParser"
 ```php
-$db = new clsDBconnector("test");
-$db->query("
-BEGIN NOT ATOMIC
-   -- - Start Binded Variables 
-   SET @VAR_DATE = '2018/01/01';SET @D_DATE = NULL;SET @D_TIME = NULL;SET @OPEN = NULL; 
-   -- - End Binded Variables 
-   SET autocommit = 0;
-   BEGIN 
--- -------------------------------------
--- start embedded code
--- -------------------------------------
--- -------------------------------------------------------------------- 
--- Testing with MARIADB, version 10.1.29 
--- -------------------------------------------------------------------- 
-  # please Check this. Block comments, internal embedded code, must use escape character 
-  /* Inside comments will not intefiering */ 
-  DECLARE in_date date DEFAULT null; 
-  set in_date = DATE_ADD(@VAR_DATE, INTERVAL 30 DAY); 
- 
-  if in_date > '2018-03-30' then 
-    set @text_error = concat('Error Managed by User:',cast(in_date as CHAR),' Exceeded Date limit'); 
-    SIGNAL SQLSTATE '45000' SET MYSQL_ERRNO = 31001, MESSAGE_TEXT = @text_error; 
-  end if; 
- 
-  SELECT d_date, d_time, open 
-  into @D_DATE, @D_TIME, @OPEN 
-  FROM test.tmp_forex 
-  where d_date = in_date 
-  limit 1; 
-  set @VAR_DATE = in_date; 
--- --------------------------------------------------------------------
--- -------------------------------------
--- end embedded code
--- -------------------------------------
-  SELECT @VAR_DATE as var_date,@D_DATE as d_date,@D_TIME as d_time,@OPEN as open; 
-END; 
-COMMIT; 
-END; -- END OF BEGIN NOT ATOMIC 
-");
-while ($db->next_record()) { # var_dump($db->Record);
-$var_date = $db->Record['var_date'] ;
-$d_date = $db->Record['d_date'] ;
-$d_time = $db->Record['d_time'] ;
-$open = $db->Record['open'] ;
-}
-$db->close();
+$resultDataSet = $parser->doCode('CASE1');
+```
+### Executing the PHP Script
+When we execute the PHP script example above, we will get these the results shown here for each "print":
+```php
+print 'DATABASE VERSION=' . $maria_db_version . PHP_EOL;
+```
+```
+OUTPUT: DATABASE VERSION=10.1.29-MariaDB
+```
+The *$maria_db_version* PHP variable took the value assigned to *:maria_db_version* inside the MariaDB code:
 
+```sql
+SET :maria_db_version = @@version;
 ```
-##### Result
+*: maria_db_version* is what we call a Bind Variable. These variables establish a direct relationship between an anfritrion language variable (that is PHP) with an embedded language variable (that is  SQL), the correspondence is made by "variable name".
+
+Then, in the PHP Script, the execution continues:
+```php
+# Use $resultDataSet[0] because using SQL Procedure can get multiple DataSet Results
+print('<pre>');
+print_r((isset($resultDataSet[0]) ? $resultDataSet[0] : "no result DataSet"));
+print('</pre>');
 ```
-RESULT =  2018-01-31, 2018-01-31 00:00:00, , 1.4171000000<br>
-RESULT =  2018-03-02, 2018-03-02 00:00:00, , 1.3782700000<br>
-"{\"CODE\":31001,\"MESSAGE\":\"Error Managed by User:2018-04-01 Exceeded Date limit \",\"USERID\":\"\",\"TYPE\":\"DB\",\"DB_TYPE\":\"\"}"
 ```
+OUTPUT: 
+Array
+(
+	[0] => Array
+		(
+			[Variable_name] => auto_increment_increment
+			[Value] => 2
+		)
+
+	[1] => Array
+		(
+			[Variable_name] => auto_increment_offset
+			[Value] => 2
+		)
+
+	[2] => Array
+		(
+			[Variable_name] => autocommit
+			[Value] => OFF
+		)
+
+	[3] => Array
+		(
+			[Variable_name] => automatic_sp_privileges
+			[Value] => ON
+		)
+
+	[4] => Array
+		(
+			[Id] => 2
+			[User] => system
+			[Host] => localhost:60694
+			[db] => 
+			[Command] => Sleep
+			[Time] => 1
+			[State] => 
+			[Info] => 
+			[Progress] => 0.000
+		)
+
+	[5] => Array
+		(
+			[Id] => 58
+			[User] => system
+			[Host] => localhost:56370
+			[db] => test
+			[Command] => Query
+			[Time] => 0
+			[State] => Unlocking tables
+			[Info] => SHOW FULL PROCESSLIST
+			[Progress] => 0.000
+		)
+)
+```
+The "*doCode*" method returns a multi-dimensional array (3 dimensions) which in PHP mysqli are called "Results". The first dimension of the array has an index for each "Result" each of them we will call a DataSet, the second dimension of the array are rows of that DataSet and the third dimension are columns of those rows. Normally we will always get 1 Unique DataSet. The output shown is the content of the PHP $ resultDataSet [0] variable. When a MariaDB statement generates an output of one or more rows, they will create a DataSet. For example, if you run "select * from table;" The output of the select can be retrieved as a DataSet.
+
+The first 4 rows of the *$resultDataSet [0]* array (indexed by 0..3) contain the values resulting from the MariaDB statement:
+```sql
+show variables  like 'auto%';
+```
+The following rows (indexed by 4 and 5) are the result of the MariaDB statement:
+```sql
+SHOW FULL PROCESSLIST;
+```
+
+### Error Handling
+During the execution of the embedded code, errors may occur, but these errors will not interrupt the execution of the host language (PHP). SQL errors, whether runtime or syntax errors, are captured and handled internally by the precompiler. In order for the host language to handle embedded language errors, error variables are used for the host language to handle.
+
+In our example, the logic followed is that the output is shown if there was no error, otherwise we show the error, let's see.
+```php
+	if ($___SQLCODE === 0 ) {
+	  print 'DATABASE VERSION=' . $maria_db_version . PHP_EOL;
+
+	  # Use $resultDataSet[0] because using SQL Procedure can get multiple DataSet Results
+	  print('<pre>');
+	  print_r((isset($resultDataSet[0]) ? $resultDataSet[0] : "no result DataSet"));
+	  print('</pre>');
+	} else {
+	  print('<pre>'
+		.'Error on CASE1 (USING GLOBALS ERROR VARIABLES): '
+		.$___SQLCODE.' - '.$___SQLERRM.PHP_EOL
+		.'</pre>');
+	  # Which Statement
+	  $parser->printForDebug('CASE1');
+	}
+```
+The "*doCode*" method handles 3 variable inside PHP's global context these are:
+|Variable| Description|
+|--|--|
+|$___SQLCODE|Contains the error code of the last SQL statement. If there was no error, the code is 0 (zero).  |
+|$___SQLERRM|Contains the error message of the last SQL statement. If there was no error the content is empty.|
+|$___LASTSQL|It contains the last SQL statement executed.|
+
+
