@@ -168,7 +168,7 @@ SHOW FULL PROCESSLIST;
 ### Error Handling
 During the execution of the embedded code, errors may occur, but these errors will not interrupt the execution of the host language (PHP). SQL errors, whether runtime or syntax errors, are captured and handled internally by the precompiler. In order for the host language to handle embedded language errors, error variables are used for the host language to handle.
 
-In our example, the logic followed is that the output is shown if there was no error, otherwise we show the error, let's see.
+In our example, the output will be shown if there was no error, otherwise we show the error, let's see.
 ```php
 	if ($___SQLCODE === 0 ) {
 	  print 'DATABASE VERSION=' . $maria_db_version . PHP_EOL;
