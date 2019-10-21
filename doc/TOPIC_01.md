@@ -45,8 +45,6 @@
 	  $parser->printForDebug('CASE1');
 	}
 	?>
-
-#### PHP Code
 ```
 What is this?:
 >>>
