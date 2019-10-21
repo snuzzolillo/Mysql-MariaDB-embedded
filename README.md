@@ -194,4 +194,56 @@ The "*doCode*" method handles 3 variable inside PHP's global context these are:
 |\$___SQLERRM|Contains the error message of the last SQL statement. If there was no error the content is empty.|
 |\$___LASTSQL|It contains the last SQL statement executed.|
 
-
+##### What if an Error occurs
+We will change the code to generate an error. We will put an invalid SQL statement. For example:
+```
+	/*<MARIADB ANONYMOUS CASE1>
+	  SET :maria_db_version = @@version;
+	  show variables   like 'auto%';
+	  SHOW FULL PROCESSLIST;
+	  @any_variable = 'any value';
+	<END>*/
+```
+After execute the PHP scritpt, there will be an SQL syntax error, then this PHP code will be executed:
+```php
+	else {
+	  print('<pre>'
+		.'Error on CASE1 (USING GLOBALS ERROR VARIABLES): '
+		.$___SQLCODE.' - '.$___SQLERRM.PHP_EOL
+		.'</pre>');
+	  # Which Statement
+	  $parser->printForDebug('CASE1');
+	}
+```
+After execute the PHP scritpt we will get this OUTPUT:
+```
+	OUTPUT:
+	Error on CASE1 (USING GLOBALS ERROR VARIABLES): 1064 - You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '@any_variable = 'any value';
+	-- -------------------------------------
+	-- end emb' at line 15
+	
+	   1 BEGIN NOT ATOMIC
+	   2    -- - Start Binded Variables 
+	   3    	SET @MARIA_DB_VERSION = NULL;
+	   4  
+	   5    -- - End Binded Variables 
+	   6    SET @___autocommit = @@autocommit;
+	   7    SET @@autocommit = 0;
+	   8    BEGIN 
+	   9 -- -------------------------------------
+	  10 -- start embedded code
+	  11 -- -------------------------------------
+	  12 SET @MARIA_DB_VERSION = @@version; 
+	  13   show variables   like 'auto%'; 
+	  14   SHOW FULL PROCESSLIST; 
+	  15   @any_variable = 'any value';
+	  16 -- -------------------------------------
+	  17 -- end embedded code
+	  18 -- -------------------------------------
+	  19   
+	  20 	SELECT 'OUTPUT BIND' as ___action___,@MARIA_DB_VERSION as maria_db_version ; 
+	  21 END; 
+	  22 COMMIT; 
+	  23    SET @@autocommit = @___autocommit;
+	  24 END; -- END OF BEGIN NOT ATOMIC 
+```
