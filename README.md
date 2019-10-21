@@ -223,10 +223,10 @@ After execute the PHP scritpt we will get this OUTPUT:
 	-- end emb' at line 15
 	
 	   1 BEGIN NOT ATOMIC
-	   2    -- - Start Binded Variables 
+	   2    -- - Start Bind Variables 
 	   3    	SET @MARIA_DB_VERSION = NULL;
 	   4  
-	   5    -- - End Binded Variables 
+	   5    -- - End Bind Variables 
 	   6    SET @___autocommit = @@autocommit;
 	   7    SET @@autocommit = 0;
 	   8    BEGIN 
@@ -246,4 +246,4 @@ After execute the PHP scritpt we will get this OUTPUT:
 	  22 COMMIT; 
 	  23    SET @@autocommit = @___autocommit;
 	  24 END; -- END OF BEGIN NOT ATOMIC 
-```
+	```
