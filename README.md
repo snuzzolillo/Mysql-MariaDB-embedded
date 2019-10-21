@@ -246,4 +246,4 @@ After execute the PHP scritpt we will get this OUTPUT:
 	  22 COMMIT; 
 	  23    SET @@autocommit = @___autocommit;
 	  24 END; -- END OF BEGIN NOT ATOMIC 
-	```
+```
