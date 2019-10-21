@@ -9,7 +9,7 @@ The server script *"db_mariadbparser.php"* is a piece of PHP code that does the 
 |PreCompiler|Piece of code in host language that transforms the content of the embedded code into host language code.|
 |Bind Variable|Host language variable that will be referenced in the embedded code. For general use, the PL / SQL convention will be used, that is, host language variables will be represented as ":variable_name" (the variable name preceded by the colon)|
 
-The server script *"db_mariadbparser.php"] is a piece of PHP code that does the precompile function, so it must be included into the PHP Script with the embedded SQL code.
+The server script *"db_mariadbparser.php"* is a piece of PHP code that does the precompile function, so it must be included into the PHP Script with the embedded SQL code.
 
 ```php
 	##-- REQUIRED TO EXECUTE PARSE MariaDB (from v10.1.1) Programmatic and Compound Statements
@@ -32,17 +32,19 @@ The "clsDBParser" function is part of *"db_mariadbparser.php"*. This function ru
 
 The call to the precompiler must be in the beginning, in this way the embedded codes will be interpreted and constructed before continuing to execute the original script.
 
-#### Embedded code
-Is considered "embedded code" what is enclosed between the tags /* <……\> and <END> *\/. 
+#### The Embedded code
+Is considered "embedded code" what is enclosed between the tags <pre>/*<……> and <END>*/</pre>. 
 The first tag provides us with additional information, in our case:
 ```
 /*<MARIADB ANONYMOUS CASE2>
 ```
 The parser will interpret this as follows:
-	
+
+|             ||
+|----------|--------------------------|
 |MARIADB|SQL language or dialect or Database engine.|
 |ANONYMOUS|Indicates that it is an anonymous block. Used for future implementation, for now it is not relevant but the term "ANONYMOUS" must be present.|
-|CASE2|It is a unique name. It is the identification of the block that refers to the SQL code that ends when finding the <END>*/ tag. During the precompilation process, the embedded code will be extracted and stored in a PHP array usin the name as index and to allow its subsequent invocation. It must be unique into a Script Server.|
+|CASE2|It is a unique name. It is the identification of the block that refers to the SQL code that ends when finding the <END>*\/ tag. During the precompilation process, the embedded code will be extracted and stored in a PHP array usin the name as index and to allow its subsequent invocation. It must be unique into a Script Server.|
 
 
 The precompiler creates an array called plsqlParsed, whose elements are indexed by the code name identified by the "BLOCK_NAME" on the start tag.
