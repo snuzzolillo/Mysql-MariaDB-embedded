@@ -1,9 +1,27 @@
 ### The precompiler.
-The pre compiler is invoked when an instance of clsDBParser is created:
+The server script *"db_mariadbparser.php"* is a piece of PHP code that does the precompile function, it also contains what is necessary to connect to the database and execute the embedded SQL commands. That is, it reads itself to search for specific tags to find statements in the "embedded language". The foreing language is embedded within a block comment into the host language so do not generate error.
+
+#### Concepts to consider when using embedded code.
+
+|             |	|
+|----------------|-------------------------------|
+|Host Language|It refers to a language that runs as a host (for example PHP) and will have a foreing language code embedded.|
+|PreCompiler|Piece of code in host language that transforms the content of the embedded code into host language code.|
+|Bind Variable|Host language variable that will be referenced in the embedded code. For general use, the PL / SQL convention will be used, that is, host language variables will be represented as ":variable_name" (the variable name preceded by the colon)|
+
+The server script *"db_mariadbparser.php"] is a piece of PHP code that does the precompile function, so it must be included into the PHP Script with the embedded SQL code.
+
+```php
+	##-- REQUIRED TO EXECUTE PARSE MariaDB (from v10.1.1) Programmatic and Compound Statements
+	define("RelativePath", ".."); #-- RELATIVE TO ROOT OF CUURENT FILE
+	require_once(RelativePath."/db_mariadbparser.php");
+	##-----------------------------------------------------------------------------------
+```
+The precompiler is invoked when an instance of clsDBParser is created. Just one time for all embedded codes:
 ```php
 	$parser = new clsDBParser("test");
 ```
-The "clsDBParser" function is part of db_mariadbparser.php. This function runs through the script (that is, "to itself") looking for comment blocks enclosed within two specific tags.
+The "clsDBParser" function is part of *"db_mariadbparser.php"*. This function runs through the script (that is, "to itself") looking for comment blocks enclosed within two specific tags.
 
 |TAG             |descripcion                          |
 |----------------|-------------------------------|
@@ -14,9 +32,22 @@ The "clsDBParser" function is part of db_mariadbparser.php. This function runs t
 
 The call to the precompiler must be in the beginning, in this way the embedded codes will be interpreted and constructed before continuing to execute the original script.
 
+#### Embedded code
+Is considered "embedded code" what is enclosed between the tags /* <……\> and <END> *\/. 
+The first tag provides us with additional information, in our case:
+```
+/*<MARIADB ANONYMOUS CASE2>
+```
+The parser will interpret this as follows:
+	
+|MARIADB|SQL language or dialect or Database engine.|
+|ANONYMOUS|Indicates that it is an anonymous block. Used for future implementation, for now it is not relevant but the term "ANONYMOUS" must be present.|
+|CASE2|It is a unique name. It is the identification of the block that refers to the SQL code that ends when finding the <END>*/ tag. During the precompilation process, the embedded code will be extracted and stored in a PHP array usin the name as index and to allow its subsequent invocation. It must be unique into a Script Server.|
+
+
 The precompiler creates an array called plsqlParsed, whose elements are indexed by the code name identified by the "BLOCK_NAME" on the start tag.
 	
-The pre compiler builds several variables referenced by:
+The precompiler builds several variables referenced by:
 ```
 	plsqlParsed["BLOCK_NAME"]
 ```
