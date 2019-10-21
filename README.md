@@ -16,13 +16,10 @@ require_once('db_mariadbparser.php');
 $parser = new clsDBParser("test");
 /*<MARIADB ANONYMOUS CASE1>
 	SET :maria_db_version = @@version;
-	Show variables like 'auto%';
-	SHOW FULL PROCESSLIST;
 <END>*/
-$resultDataSet = $parser->doCode('CASE1');
+$parser->doCode('CASE1');
 if(!$___SQLCODE){
 	print('DATABASE VERSION = '.$maria_db_version.PHP_EOL);
-	print_r($resultDataSet[0]);
 } else {
 	die('Error '.$___SQLCODE.'-'.$___SQLERRM);
 }
