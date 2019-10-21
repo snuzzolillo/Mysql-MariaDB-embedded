@@ -6,4 +6,27 @@ If you are a SQL database enthusiast and know about the use of database language
 
 At the time of developing this code, I did not find any indication that the latest version of MySql ([MySQL 8.0.18](https://dev.mysql.com/doc/relnotes/mysql/8.0/en/), General Availability 2019-10-14) has this capability.
 
+### Purpose
+Allows to embed simple or complex SQL instructions and / or "Programmatic and Compound Statements" (in this case MariaDB Version 10.1.1 or higher) into a Server Script statements sequence (in this case PHP).
+### Installation
+It does not require installation. Just place the *db_mariadbparser.php* file in an accessible path to be included in any PHP Script. For example:
+```php
+<?php
+require_once(db_mariadbparser.php");
+$parser = new clsDBParser("test");
+/*<MARIADB ANONYMOUS CASE1>
+	SET :maria_db_version = @@version;
+	Show variables like 'auto%';
+	SHOW FULL PROCESSLIST;
+<END>*/
+$resultDataSet = $parser->doCode('CASE1');
+if(!$___SQLCODE){
+	print('DATABASE VERSION = '.$maria_db_version.PHP_EOL);
+	print_r($resultDataSet[0]);
+} else {
+	Die('Error '.$___SQLCODE.'-'.$___SQLERRM);
+}
+die;
+?>
+```
 [Let's start with a very simple example](doc/TOPIC_01.md)
