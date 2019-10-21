@@ -12,7 +12,7 @@ Allows to embed simple or complex SQL instructions and / or "Programmatic and Co
 It does not require installation. Just place the *db_mariadbparser.php* file in an accessible path to be included in any PHP Script. For example:
 ```php
 <?php
-require_once(db_mariadbparser.php");
+require_once('db_mariadbparser.php');
 $parser = new clsDBParser("test");
 /*<MARIADB ANONYMOUS CASE1>
 	SET :maria_db_version = @@version;
