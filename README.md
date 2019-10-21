@@ -24,9 +24,8 @@ if(!$___SQLCODE){
 	print('DATABASE VERSION = '.$maria_db_version.PHP_EOL);
 	print_r($resultDataSet[0]);
 } else {
-	Die('Error '.$___SQLCODE.'-'.$___SQLERRM);
+	die('Error '.$___SQLCODE.'-'.$___SQLERRM);
 }
-die;
 ?>
 ```
 [Let's start with a very simple example](doc/TOPIC_01.md)
