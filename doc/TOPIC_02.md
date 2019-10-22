@@ -17,13 +17,13 @@ The server script *"db_mariadbparser.php"* is a piece of PHP code that does the 
 	require_once(RelativePath."/db_mariadbparser.php");
 	##-----------------------------------------------------------------------------------
 ```
-The precompiler is invoked when an instance of clsDBParser is created. Just one time for all embedded codes:
+The precompiler is invoked when an instance of clsDBParser class is created. Just one time for all embedded codes:
 ```php
 	$parser = new clsDBParser("test");
 ```
-The "clsDBParser" function is part of *"db_mariadbparser.php"*. This function runs through the script (that is, "to itself") looking for comment blocks enclosed within two specific tags.
+The "clsDBParser" class is part of *"db_mariadbparser.php"*. When the class is instanced it reads the Parent Script  (that is, "itself") looking for comment blocks enclosed within two specific tags.
 
-The "test" parameter is a reference to a DB-CONNECTOR. It is defined into *"db_mariadbparser.php"*. Yo must config this to your needs.
+The "test" parameter used to instance the class is a reference to a DB-CONNECTOR. This connector is defined into *"db_mariadbparser.php"*. Yo must config this to your needs.
 #### The Tags descripctions
 |TAG             |Descripcion                          |
 |----------------|-------------------------------|
@@ -32,7 +32,7 @@ The "test" parameter is a reference to a DB-CONNECTOR. It is defined into *"db_m
 
 >The texts of the tags must be in UPPERCASE.
 
-The call to the precompiler must be in the beginning, in this way the embedded codes will be interpreted and constructed before continuing to execute the original script.
+The call to the precompiler (the "instanced class" statement) should be at the beginning, is recomended put it just after the include command, in this way the embedded codes will be interpreted and constructed before continuing to execute the original script.
 
 #### The Embedded code
 Is considered "embedded code" what is enclosed between the tags 
