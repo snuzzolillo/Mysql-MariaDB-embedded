@@ -1050,6 +1050,9 @@ class clsDBParser
     public $db = "";
     public $sourceName = "";
     public $currentScriptName = "";
+    private $dbName = "";
+    private $dbVersion = "";
+    private $bindStrictMode = false; // When true Bind only if host variable exists, if not then do Stop Error!!
 
     function __construct($sourceName, $currentfile=null)
     {
@@ -1057,6 +1060,36 @@ class clsDBParser
         $this->currentScriptName = is_null($currentfile) ? $_SERVER['SCRIPT_FILENAME'] : $currentfile;
 
         $this->db = new clsDBconnector($sourceName);
+        ## Assuming MariaDB 10.1.1 or higher
+        {
+            $this->db->query("select @@version");
+            $dbVersion = $this->db->next_record() ? $this->db->f(0) : "";
+            #parsing Version
+            $versionError = false;
+            $dbVersion = explode('-', $dbVersion);
+            if (isset($dbVersion[1])) {
+                $dbName = $dbVersion[1];
+                $dbVersion = $dbVersion[0];
+                $dbVersionNumber = explode('.', $dbVersion);
+                # Have 3 numbers?
+                if (isset($dbVersionNumber[2])) {
+                    $dbVersionNumber = (int)str_pad($dbVersionNumber[0], '3', '0', STR_PAD_LEFT)
+                        . str_pad($dbVersionNumber[1], '3', '0', STR_PAD_LEFT)
+                        . str_pad((!isset($dbVersionNumber[2]) ? '0' : $dbVersionNumber[2]), '3', '0', STR_PAD_LEFT);
+                } else $versionError = 2; // Error Version Number
+            } else $versionError = 1; // Error Version Number
+
+            if (!($dbVersionNumber > 10001000)) $versionError = 3; // Error Version not allowed
+
+            if (($dbName != 'MariaDB') or $versionError) {
+                die('This script is only valid for MariaDB 10.1.1 or higher. Your Current database is ' . $dbName . ' ' . $dbVersion);
+            }
+            #print_r($dbName . ' ' . $dbVersion . ' ' . $dbVersionNumber . ' ' . '9001001');
+
+            $this->dbName = $dbName;
+            $this->dbVersion = $dbVersion;
+        }
+        # END Assuming MariaDB 10.1.1 or higher
         $this->sqlParser($this->currentScriptName, $sourceName); # call the Precompiler
     }
 
@@ -1067,6 +1100,10 @@ class clsDBParser
         $this->__construct($sourceName, $currentfile);
     }
 
+    function setBindStrictMode($mode) {
+        $this->bindStrictMode = $mode;
+    }
+
     function doBind($codeName,$sourceName = null) {
 
         is_null($sourceName) ? $this->sourceName : $sourceName;
@@ -1074,12 +1111,20 @@ class clsDBParser
         $arr = $this->plsqlParsed[$codeName]->bind;
         $___BIND___ = "";
 
+        #print(nl2br("DO BIND START".PHP_EOL));
         #$db = new clsDBconnector($sourceName);
         foreach($arr as $toBind) {
             $t = trim(str_replace(',','',$toBind));
-            if (!isset($GLOBALS[$t])) $GLOBALS[$t] = "";
+            if (!isset($GLOBALS[$t]) and $this->bindStrictMode){
+                die("Strict mode Bind Variable, require GLOBAL CONTEXT VARIABLE \"$".$t."\" to be declared");
+            }
+            else {
+                if (!isset($GLOBALS[$t]))  $GLOBALS[$t] = "";
+            }
             $___BIND___ .= "\t".'SET @'.strtoupper($t).' = '.$this->db->ToSQL($GLOBALS[$t],ccsText).";\n";
+            #print(nl2br("$t = ".$GLOBALS[$t].PHP_EOL));
         }
+        #print(nl2br("DO BIND END".PHP_EOL));
         return $___BIND___;
 
         #$db->close();
@@ -1087,7 +1132,9 @@ class clsDBParser
     }
 
     function printForDebug($codeName) {
-        $queryString = $this->buildQueryString($codeName);
+        #
+        #$queryString = $this->buildQueryString($codeName);
+        $queryString = $this->plsqlParsed[$codeName]->LASTSQL;
         # Print pre-format query string qith line number
         $strinByLine = explode("\n", $queryString);
         $i = 1;
@@ -1124,27 +1171,6 @@ class clsDBParser
 
         $sourceName = is_null($sourceName) ? $this->sourceName : $sourceName;
 
-        /*$queryString = $this->plsqlParsed[$codeName]->queryString;
-        $___BIND___ = $this->doBind($codeName,$sourceName);
-        $queryString = str_replace('### BIND',$___BIND___,$queryString);
-        $arr = $this->plsqlParsed[$codeName]->bind;
-
-        ### --------- BUILD RESULT LINE ------
-        #$getResult1 = "\n\t".'SELECT 1 as num,';
-        #foreach($arr as $toBind) {
-        #    $t = trim(str_replace(',','',$toBind));
-        #    $getResult1 .= '@'.strtoupper($t).' as '.$t.',';
-        #}
-        #$getResult1 = substr($getResult1,0,-1).' ; ';
-
-        $getResult2 = "\n\t"."SELECT 'OUTPUT BIND' as ___action___,";
-        foreach($arr as $toBind) {
-            $t = trim(str_replace(',','',$toBind));
-            $getResult2 .= '@'.strtoupper($t).' as '.$t.',';
-        }
-        $getResult2 = substr($getResult2,0,-1).' ;';
-        $queryString = str_replace('### RESULT',$getResult2,$queryString);
-        */
         $queryString = $this->buildQueryString($codeName, $sourceName);
         #print_r($queryString);
 
@@ -1274,11 +1300,15 @@ class clsDBParser
             # No admite variables que empiecen por numeros
             #preg_match_all("/\\:[a-zA-Z_]([a-zA-Z0-9_.]+)/ise", $body, $arr);
 
+            # Ignore bind variables into SQL comments repleacing line comments to ''
+            $patron = '~(?:#|\-\- )[^\r\n]*|/\*[\s\S]*?\*/~';
+            $tmp_body =preg_replace($patron, '', $body);
+            #echo $tmp_body; die;
 
             # En este caso, en arr[0] aparecen las que comienzan con : pero si estan entre ' ', debe ser omitida
-            preg_match_all("/('(?:\\.|[^'])*\\')|\\:([a-zA-Z0-9_.]+)/ise", $body, $arr);
+            preg_match_all("/('(?:\\.|[^'])*\\')|\\:([a-zA-Z0-9_.]+)/ise", $tmp_body, $arr);
 
-            #print_r($arr); die;
+
             if (isset($arr[1])) {
                 foreach ($arr[0] as $key => $element) {
                     if (substr($element, 0,1) !== ':') {
@@ -1297,7 +1327,7 @@ class clsDBParser
                 $arr = array_unique($arr[1]);
                 $arr = array_values($arr);
             } else $arr = array();
-
+            #print_r($arr); die;
 
             $body = str_replace('*\/','*/',$body);
             $body = str_replace('"','\"',$body);
