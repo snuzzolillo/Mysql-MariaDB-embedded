@@ -21,9 +21,9 @@ The precompiler is invoked when an instance of clsDBParser class is created. Jus
 ```php
 	$parser = new clsDBParser("test");
 ```
-The "clsDBParser" class is part of *"db_mariadbparser.php"*. When the class is instanced it reads the Parent Script  (that is, "itself") looking for comment blocks enclosed within two specific tags.
+The "*clsDBParser*" class is part of *"db_mariadbparser.php"*. When the class is instanced it reads the Parent Script  (that is, "itself") looking for comment blocks enclosed within two specific tags.
 
-The "test" parameter used to instance the class is a reference to a DB-CONNECTOR. This connector is defined into *"db_mariadbparser.php"*. Yo must config this to your needs.
+The "*test*" parameter used to instance the class is a reference to a DB-CONNECTOR. This connector is defined into *"db_mariadbparser.php"*. Yo must config this to your needs.
 #### The Tags descripctions
 |TAG             |Descripcion                          |
 |----------------|-------------------------------|
@@ -91,7 +91,7 @@ The parser will interpret this as follows:
 |----------|--------------------------|
 |MARIADB|SQL language or dialect or Database engine.|
 |ANONYMOUS|Indicates that it is an anonymous block. Used for future implementation, for now it is not relevant but the term "ANONYMOUS" must be present.|
-|CASE2|Is the BLOCL NAME. It is a unique name. It is the identification of the block that refers to the SQL code that ends when finding the <END>*\/ tag. During the precompilation process, the embedded code will be extracted and stored in a PHP array using the name as index and to allow its subsequent invocation. It must be unique into a Script Server.|
+|CASE2|Is the BLOCK NAME. It is a unique name. It is the identification of the block that refers to the SQL code that ends when finding the <END>*\/ tag. During the precompilation process, the embedded code will be extracted and stored in a PHP array using the name as index and to allow its subsequent invocation. It must be unique into a Script Server.|
 
 
 The precompiler creates an array called plsqlParsed, whose elements are indexed by the code name identified by the "BLOCK_NAME" on the start tag.
@@ -112,5 +112,6 @@ This script contains the precompiler logic in addition to everything needed to c
 
 In this file you will find references to PL / SQL or ORACLE, from which the original idea started and was tested in the same way as this. At the time of testing with ORACLE, MySQL did not have the concept of "executing instructions outside of procedure or function". MySQL also does not have the concept of "Bind Variables" as ORACLE does, the closest implementation is the association by positioning and not by variable names . MySQL (and MARIA-DB) have the concept of User-Defined Variables which are used to simulate the "Bind Variables", if you notice, the generated code replaces the variables preceded by ":" to variables preceded by "@" within the embedded code.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTc5ODIzMjgzMiwtNzQ4Njk5Nzk0XX0=
+eyJoaXN0b3J5IjpbMTE3NDQ0ODc0NywtNzk4MjMyODMyLC03ND
+g2OTk3OTRdfQ==
 -->
