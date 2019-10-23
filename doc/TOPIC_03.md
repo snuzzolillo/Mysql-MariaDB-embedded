@@ -59,12 +59,12 @@ $Var
 $VAr
 $VAR
 ```
-Remember that if the precompiler does not find an exact correspondence of a variable name in php, it will create the variables within the global context, this means that, after execution of the embedded code, the 4 variables exist within php and all will have the last value that was assigned to @VAR (in this example all 4 variables will have de value of '3').
+Remember that if the precompiler does not find an exact correspondence of a variable name in php, it will create the variables within the global context, this means that, after execution of the embedded code, the 4 variables exist within php and all will have the last value that was assigned to @VAR (in this example all 4 variables will have the value of '3').
 
-##### Seting and Rassigning Values from-to Bind Variables
+##### Setting and Reassigning Values from-to Bind Variables
 Initial values without initialization from PHP
 
-|PHP ASSIGNEMENT|PRECOMPILER BUILD CODE|
+|PHP ASSIGNMENT|PRECOMPILER BUILD CODE|
 |--|--|
 |NONE|SET @VAR = NULL; -- Create $VAR|
 |NONE|SET @VAR = NULL; -- Create $var|
@@ -73,7 +73,7 @@ Initial values without initialization from PHP
 
 Initial values with initialization from PHP
 
-|PHP ASSIGNEMENT|PRECOMPILER BUILD CODE|
+|PHP ASSIGNMENT|PRECOMPILER BUILD CODE|
 |--|--|
 |$VAR = 7;|SET @VAR = '7'; -- Get Value from $VAR|
 |$var = 4;|SET @VAR = '4'; -- Get Value from $var|
@@ -91,5 +91,5 @@ Returning Values
 |	,@VAR as Var|$Var = array['Var']; // Last Value of @VAR = 4|
 |	,@VAR as VAr;|$VAr = array['VAr']; // Last Value of @VAR = 4|
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEyNjE5Njk3MzVdfQ==
+eyJoaXN0b3J5IjpbLTU5NTk4MTA0XX0=
 -->
