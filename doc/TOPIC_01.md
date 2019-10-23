@@ -1,4 +1,4 @@
-### Let's start with a very simple example:
+## Let's start with a very simple example:
 ```php
 	<?php
 	##-----------------------------------------------------------------------------------
