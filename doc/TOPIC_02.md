@@ -1,11 +1,11 @@
 ## The precompiler.
-The server script *"db_mariadbparser.php"* is a piece of PHP code that does the precompile function, it also contains what is necessary to connect to the database and execute the embedded SQL commands. That is, it reads itself to search for specific tags to find statements in the "embedded language". The foreing language is embedded within a block comment into the host language so do not generate error.
+The server script *"db_mariadbparser.php"* is a piece of PHP code that does the precompile function, it also contains what is necessary to connect to the database and execute the embedded SQL commands. That is, it reads itself to search for specific tags to find statements in the "embedded language". The foreign language is embedded within a block comment into the host language so do not generate error.
 
 #### Concepts to consider when using embedded code.
 
 |             |	|
 |----------------|-------------------------------|
-|Host Language|It refers to a language that runs as a host (for example PHP) and will have a foreing language code embedded.|
+|Host Language|It refers to a language that runs as a host (for example PHP) and will have a foreign language code embedded.|
 |PreCompiler|Piece of code in host language that transforms the content of the embedded code into host language code.|
 |Bind Variable|Host language variable that will be referenced in the embedded code. For general use, the PL / SQL convention will be used, that is, host language variables will be represented as ":variable_name" (the variable name preceded by the colon)|
 
@@ -32,7 +32,7 @@ The "test" parameter used to instance the class is a reference to a DB-CONNECTOR
 
 >The texts of the tags must be in UPPERCASE.
 
-The call to the precompiler (the "instanced class" statement) should be at the beginning, is recomended put it just after the include command, in this way the embedded codes will be interpreted and constructed before continuing to execute the original script.
+The call to the precompiler (the "instanced class" statement) should be at the beginning, is recommended put it just after the include command, in this way the embedded codes will be interpreted and constructed before continuing to execute the original script.
 
 #### The Embedded code
 Is considered "embedded code" what is enclosed between the tags 
@@ -91,7 +91,7 @@ The parser will interpret this as follows:
 |----------|--------------------------|
 |MARIADB|SQL language or dialect or Database engine.|
 |ANONYMOUS|Indicates that it is an anonymous block. Used for future implementation, for now it is not relevant but the term "ANONYMOUS" must be present.|
-|CASE2|Is the BLOCL NAME. It is a unique name. It is the identification of the block that refers to the SQL code that ends when finding the <END>*\/ tag. During the precompilation process, the embedded code will be extracted and stored in a PHP array usin the name as index and to allow its subsequent invocation. It must be unique into a Script Server.|
+|CASE2|Is the BLOCL NAME. It is a unique name. It is the identification of the block that refers to the SQL code that ends when finding the <END>*\/ tag. During the precompilation process, the embedded code will be extracted and stored in a PHP array using the name as index and to allow its subsequent invocation. It must be unique into a Script Server.|
 
 
 The precompiler creates an array called plsqlParsed, whose elements are indexed by the code name identified by the "BLOCK_NAME" on the start tag.
@@ -111,3 +111,6 @@ Those that are of interest to us:
 This script contains the precompiler logic in addition to everything needed to connect to a MySql (MARIADB) database with "mysqli" drivers. It is the summary within a single file of a group of multiple files that make up a "Generic DB Adapters", which has been simplified for the purpose of testing this idea. This idea is experimental, in the testing phase and possibly will be part of the integral development associated with… .. FRAMEWORK…
 
 In this file you will find references to PL / SQL or ORACLE, from which the original idea started and was tested in the same way as this. At the time of testing with ORACLE, Mysql did not have the concept of executing instructions outside of procedure or function. Mysql also does not have the concept of "Bind Variables" as ORACLE does, the closest implementation is the association by positioning and not by name of variables. Mysql (and MARIADB) have the concept of User-Defined Variables which are used to simulate the "Binded Variables", if you notice, the generated code replaces the variables preceded by ":" to variables preceded by "@" within the embedded code.
+<!--stackedit_data:
+eyJoaXN0b3J5IjpbLTEyNDIyNjY5OTldfQ==
+-->
