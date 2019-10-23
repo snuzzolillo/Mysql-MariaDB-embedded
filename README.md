@@ -27,14 +27,14 @@ if(!$___SQLCODE){
 ```
 ### The *cldDBParser* class
 
-#### Atributes
-|Name|Descripcion|
+#### Attributes
+|Name|Description|
 |--|--|
 |db|DBAdapter Object|
 
 #### Methods
 
-|Name|Descripcion|
+|Name|Description|
 |--|--|
 |doCode(block_name)|Execute embedded code |
 
@@ -46,5 +46,5 @@ if(!$___SQLCODE){
  - [The Bind Variables](doc/TOPIC_03.md)
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTExMjQ5NDMwOTEsMTk3MjI2OTMwNl19
+eyJoaXN0b3J5IjpbLTk2MDE2ODE1LDE5NzIyNjkzMDZdfQ==
 -->
