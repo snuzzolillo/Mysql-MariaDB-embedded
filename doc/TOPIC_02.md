@@ -1,4 +1,4 @@
-### The precompiler.
+## The precompiler.
 The server script *"db_mariadbparser.php"* is a piece of PHP code that does the precompile function, it also contains what is necessary to connect to the database and execute the embedded SQL commands. That is, it reads itself to search for specific tags to find statements in the "embedded language". The foreing language is embedded within a block comment into the host language so do not generate error.
 
 #### Concepts to consider when using embedded code.
