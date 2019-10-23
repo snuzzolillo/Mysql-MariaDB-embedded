@@ -108,9 +108,9 @@ Those that are of interest to us:
 ```
 
 #### About the db_mariadbparser.php file
-This script contains the precompiler logic in addition to everything needed to connect to a MySql (MARIADB) database with "mysqli" drivers. It is the summary within a single file of a group of multiple files that make up a "Generic DB Adapters", which has been simplified for the purpose of testing this idea. This idea is experimental, in the testing phase and possibly will be part of the integral development associated with… .. FRAMEWORK…
+This script contains the precompiler logic in addition to everything needed to connect to a MySql (MARIA-DB) database with "*mysqli*" drivers. It is the summary within a single file of a group of multiple files that make up a "Generic DB Adapters", which has been simplified for the purpose of testing this idea. This idea is experimental, in the testing phase and possibly will be part of the integral development associated with… .. FRAMEWORK…
 
-In this file you will find references to PL / SQL or ORACLE, from which the original idea started and was tested in the same way as this. At the time of testing with ORACLE, Mysql did not have the concept of executing instructions outside of procedure or function. Mysql also does not have the concept of "Bind Variables" as ORACLE does, the closest implementation is the association by positioning and not by name of variables. Mysql (and MARIADB) have the concept of User-Defined Variables which are used to simulate the "Binded Variables", if you notice, the generated code replaces the variables preceded by ":" to variables preceded by "@" within the embedded code.
+In this file you will find references to PL / SQL or ORACLE, from which the original idea started and was tested in the same way as this. At the time of testing with ORACLE, Mysql did not have the concept of executing instructions outside of procedure or function. Mysql also does not have the concept of "Bind Variables" as ORACLE does, the closest implementation is the association by positioning and not by name of variables. Mysql (and MARIA-DB) have the concept of User-Defined Variables which are used to simulate the "Bind Variables", if you notice, the generated code replaces the variables preceded by ":" to variables preceded by "@" within the embedded code.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEyNDIyNjY5OTldfQ==
+eyJoaXN0b3J5IjpbLTc0ODY5OTc5NF19
 -->
