@@ -60,3 +60,13 @@ $VAr
 $VAR
 ```
 Remember that if the precompiler does not find an exact correspondence of a variable name in php, it will create the variables within the global context, this means that, after execution of the embedded code, the 4 variables exist within php and all will have the last value that was assigned to @VAR.
+
+##### Seting and Rassigning Values from-to Bind Variables
+Initial values without initialization from PHP
+
+|PHP ASSIGNEMENT|PRECOMPILER BUILD CODE|
+|--|--|
+|NONE|SET @VAR = NULL; -- Create $VAR|
+|NONE|SET @VAR = NULL; -- Create $var|
+|NONE|SET @VAR = NULL; -- Create $Var|
+|NONE|SET @VAR = NULL; -- Create $VAr|
