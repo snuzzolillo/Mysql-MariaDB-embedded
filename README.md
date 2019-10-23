@@ -25,8 +25,26 @@ if(!$___SQLCODE){
 }
 ?>
 ```
+### The *cldDBParser* class
+
+#### Atributes
+|Name|Descripcion|
+|--|--|
+|db|DBAdapter Object|
+
+#### Methods
+
+|Name|Descripcion|
+|--|--|
+|doCode(block_name)|Execute embedded code |
+
+
+### Others Topics
 [Let's start with a very simple example](doc/TOPIC_01.md)
 
 [The Precompiler](doc/TOPIC_02.md)
 
 [The Bind Variables](doc/TOPIC_03.md)
+<!--stackedit_data:
+eyJoaXN0b3J5IjpbMTk3MjI2OTMwNl19
+-->
