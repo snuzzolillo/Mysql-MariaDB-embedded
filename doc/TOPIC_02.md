@@ -107,12 +107,12 @@ Those that are of interest to us:
 	plsqlParsed["BLOCK_NAME"]->SQLERRM
 ```
 #### What Precompiler does
-desarrollar este tema
+Pending to develop this topic
 #### About the db_mariadbparser.php file
 This script contains the precompiler logic in addition to everything needed to connect to a MySQL (MARIA-DB) database with "*mysqli*" drivers. It is the summary within a single file of a group of multiple files that make up a "Generic DB Adapters", which has been simplified for the purpose of testing this idea. This idea is experimental, is in the testing phase and possibly will be part of the integral development associated with a mayor [FRAMEWORK](https://github.com/snuzzolillo/FULL-STACK-FRAMEWORK/blob/master/README.md).
 
 In this file you will find references to PL / SQL or ORACLE, from which the original idea started and was tested in the same way as this. At the time of testing with ORACLE, MySQL did not have the concept of "executing instructions outside of procedure or function". MySQL also does not have the concept of "Bind Variables" as ORACLE does, the closest implementation is the association by positioning and not by variable names . MySQL (and MARIA-DB) have the concept of User-Defined Variables which are used to simulate the "Bind Variables", if you notice, the generated code replaces the variables preceded by ":" to variables preceded by "@" within the embedded code.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE3OTQ0MTYyNDEsLTE3MjUyODgxNDcsLT
+eyJoaXN0b3J5IjpbLTE5NzYwMzMzNTAsLTE3MjUyODgxNDcsLT
 E1MDAxNDM4NDQsLTc5ODIzMjgzMiwtNzQ4Njk5Nzk0XX0=
 -->
