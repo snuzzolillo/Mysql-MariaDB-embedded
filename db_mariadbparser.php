@@ -1058,7 +1058,8 @@ class clsDBParser
     {
         $this->sourceName = $sourceName;
         $this->currentScriptName = is_null($currentfile) ? $_SERVER['SCRIPT_FILENAME'] : $currentfile;
-
+        # TODO: create a Method to allow include more embedded code parsed from another file
+        # TODO: create a Method to allow include more embedded code parsed from string
         $this->db = new clsDBconnector($sourceName);
         ## Assuming MariaDB 10.1.1 or higher
         {
@@ -1210,6 +1211,7 @@ class clsDBParser
 
     function sqlParser($currentfile = "", $sourceName = null ){
 
+        # TODO: Allow INCLUDE others embedded code by name
         is_null($sourceName) ? $this->sourceName : $sourceName;
 
         if (!$currentfile) {
