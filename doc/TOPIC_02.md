@@ -91,10 +91,10 @@ The parser will interpret this as follows:
 |----------|--------------------------|
 |MARIADB|SQL language or dialect or Database engine.|
 |ANONYMOUS|Indicates that it is an anonymous block. Used for future implementation, for now it is not relevant but the term "ANONYMOUS" must be present.|
-|CASE2|Is the **BLOCK NAME**. It is a unique name. It is the identification of the block that refers to the SQL code that ends when finding the <END>*\/ tag. During the precompilation process, the embedded code will be extracted and stored in a PHP array using the name as index and to allow its subsequent invocation. It must be unique into a Script Server.|
+|CASE2|Is the **BLOCK NAME**. It is a unique name. It is the identification of the block that refers to the SQL code that ends when finding the <END>*\/ tag. During the precompilation process, the embedded code will be extracted and stored in a PHP array using the name as index and to allow its subsequent invocation. **It must be unique** into a Script Server.|
 
 
-The precompiler creates an array attribute of instanced class called "*plsqlParsed*", whose elements are indexed by the code name identified by the "**BLOCK_NAME**" on the start tag.
+The precompiler creates an array attribute of the instanced class called "*plsqlParsed*", whose elements are indexed by the code name identified by the "**BLOCK_NAME**" on the start tag.
 	
 The precompiler builds several variables referenced by:
 ```
@@ -112,6 +112,6 @@ This script contains the precompiler logic in addition to everything needed to c
 
 In this file you will find references to PL / SQL or ORACLE, from which the original idea started and was tested in the same way as this. At the time of testing with ORACLE, MySQL did not have the concept of "executing instructions outside of procedure or function". MySQL also does not have the concept of "Bind Variables" as ORACLE does, the closest implementation is the association by positioning and not by variable names . MySQL (and MARIA-DB) have the concept of User-Defined Variables which are used to simulate the "Bind Variables", if you notice, the generated code replaces the variables preceded by ":" to variables preceded by "@" within the embedded code.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTkyNjQwMDM5NSwtNzk4MjMyODMyLC03ND
-g2OTk3OTRdfQ==
+eyJoaXN0b3J5IjpbLTE1MDAxNDM4NDQsLTc5ODIzMjgzMiwtNz
+Q4Njk5Nzk0XX0=
 -->
