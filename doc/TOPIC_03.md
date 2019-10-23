@@ -1,5 +1,5 @@
 ## The Bind Variables
-Bind Variables are used to exchange data between the host language and the embedded language. For the purposes of this pre-compiler, it will make a direct relationship between variables in embedded language (those preceded with ":") and variables (of global context) within the host language with a correlation by "name of variable", that is, a variable called ": var_date" in the embedded language the value will be associated with a variable called "$var_date" in the host language.
+Bind Variables are used to exchange data between the host language and the embedded language. For the purposes of this pre-compiler, it will make a direct relationship between variables in embedded language (those preceded with ":") and variables (of global context) within the host language with a correlation by "name of variable", that is, a variable called "*:var_date*" in the embedded language the value will be associated with a variable called "*$var_date*" in the host language.
 
 Let's look at this example of embedded SQL code:
 ```php
@@ -16,7 +16,7 @@ Let's look at this example of embedded SQL code:
 	<END>*/
 ```
 
-In this example there are two Bind Variable, called ":var_date" and ":var_test". The precompiler assumes that they will be related to global context php variables called "$var_date" and "$var_test" respectively. Additionally, the values of ":var_date" and ":var_test" are modified by assignment statements.
+In this example there are two Bind Variable, called "*:var_date*" and "*:var_test*". The precompiler assumes that they will be related to global context php variables called  * and "$var_test" respectively. Additionally, the values of ":var_date" and ":var_test" are modified by assignment statements.
 
 The handling of the Bind Variables has two phases:
  1. Assignment from the host language to the embedded language as an initialization.
@@ -91,5 +91,5 @@ Returning Values
 |	,@VAR as Var|$Var = array['Var']; // Last Value of @VAR = 4|
 |	,@VAR as VAr;|$VAr = array['VAr']; // Last Value of @VAR = 4|
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbNDM1ODA4NTM3XX0=
+eyJoaXN0b3J5IjpbLTQyNjkzNzk1NV19
 -->
