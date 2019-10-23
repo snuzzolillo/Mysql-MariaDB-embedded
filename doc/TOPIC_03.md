@@ -16,7 +16,7 @@ Let's look at this example of embedded SQL code:
 	<END>*/
 ```
 
-In this example there are two Bind Variable, called "*:var_date*" and "*:var_test*". The precompiler assumes that they will be related to global context php variables called  * and "$var_test" respectively. Additionally, the values of ":var_date" and ":var_test" are modified by assignment statements.
+In this example there are two Bind Variable, called "*:var_date*" and "*:var_test*". The precompiler assumes that they will be related to global context php variables called  "*\$var\_date*" and "*\$var\_test*" respectively. Additionally, the values of "*:var_date*" and ":var_test" are modified by assignment statements.
 
 The handling of the Bind Variables has two phases:
  1. Assignment from the host language to the embedded language as an initialization.
@@ -91,5 +91,5 @@ Returning Values
 |	,@VAR as Var|$Var = array['Var']; // Last Value of @VAR = 4|
 |	,@VAR as VAr;|$VAr = array['VAr']; // Last Value of @VAR = 4|
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTQyNjkzNzk1NV19
+eyJoaXN0b3J5IjpbLTMzOTIxNjQwN119
 -->
