@@ -40,11 +40,11 @@ if(!$___SQLCODE){
 
 
 ### Others Topics
-[Let's start with a very simple example](doc/TOPIC_01.md)
 
-[The Precompiler](doc/TOPIC_02.md)
+ - [Let's start with a very simple example](doc/TOPIC_01.md)
+ - [The Precompiler](doc/TOPIC_02.md)
+ - [The Bind Variables](doc/TOPIC_03.md)
 
-[The Bind Variables](doc/TOPIC_03.md)
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTk3MjI2OTMwNl19
+eyJoaXN0b3J5IjpbLTExMjQ5NDMwOTEsMTk3MjI2OTMwNl19
 -->
