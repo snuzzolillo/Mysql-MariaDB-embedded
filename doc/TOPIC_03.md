@@ -70,3 +70,23 @@ Initial values without initialization from PHP
 |NONE|SET @VAR = NULL; -- Create $var|
 |NONE|SET @VAR = NULL; -- Create $Var|
 |NONE|SET @VAR = NULL; -- Create $VAr|
+
+Initial values with initialization from PHP
+
+|PHP ASSIGNEMENT|PRECOMPILER BUILD CODE|
+|--|--|
+|$VAR = 7;|SET @VAR = '7'; -- Get Value from $VAR|
+|$var = 4;|SET @VAR = '4'; -- Get Value from $var|
+|$Var = 5;|SET @VAR = '5'; -- Get Value from $Var|
+|$VAr = 6;|SET @VAR = '6'; -- Get Value from $VAr|
+
+Returning Values
+
+|PRECOMPILER BUILD CODE|PHP AFTER EXECUTION ASSIGNAMENT|
+|--|--|
+|SELECT|Reassign from ARRAY RESULT|
+|	 'OUTPUT BIND' as \_\_\_action\_\_\_|$_\_\_action___ = array['\_\_\_action\_\_\_']; // OUTPUT BIND
+|	,@VAR as VAR|$VAR = array['VAR']; // Last Value of @VAR = 4|
+|	,@VAR as var|$var = array['var']; // Last Value of @VAR = 4|
+|	,@VAR as Var|$Var = array['Var']; // Last Value of @VAR = 4|
+|	,@VAR as VAr;|$VAr = array['VAr']; // Last Value of @VAR = 4|
