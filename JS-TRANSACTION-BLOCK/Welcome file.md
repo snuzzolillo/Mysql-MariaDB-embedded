@@ -1,6 +1,8 @@
 # The Big Picture
 
-Hi! I'm your first Markdown file in **StackEdit**. If you want to learn about StackEdit, you can read me. If you want to play with Markdown, you can edit me. Once you have finished with me, you can create new files by opening the **file explorer** on the left corner of the navigation bar.
+In more than one occasion we have encountered the need to request information from the remote server, either lookup or for validation purposes. If, for any reason within the same transaction concept, more than one call to the server was required, we entered into an Asynchronous dilemma.
+
+
 
 
 # Files
@@ -142,5 +144,5 @@ B --> D{Rhombus}
 C --> D
 ```
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE3MTY4NDMxMzJdfQ==
+eyJoaXN0b3J5IjpbMTgyMDA3MDE0MiwtMTcxNjg0MzEzMl19
 -->
